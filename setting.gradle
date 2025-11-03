@@ -1,4 +1,0 @@
-// (기존 내용)
-rootProject.name = 'msa-delivery-project'
-include 'infra:eureka-server'
-include 'services:delivery-server' // (이전 이름이 delivery-server라면 이걸로)

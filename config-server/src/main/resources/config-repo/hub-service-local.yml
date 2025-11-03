@@ -1,0 +1,8 @@
+server:
+  port: ${HUB_SERVICE_PORT}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh
