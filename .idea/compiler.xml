@@ -21,7 +21,11 @@
         <module name="msa-logistics-project.eureka-server.test" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="21" />
+    <bytecodeTargetLevel target="17">
+      <module name="sparta_logitics" target="17" />
+      <module name="sparta_logitics.main" target="17" />
+      <module name="sparta_logitics.test" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_STRING" value="-parameters" />
