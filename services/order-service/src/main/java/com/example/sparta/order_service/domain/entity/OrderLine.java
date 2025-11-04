@@ -1,5 +1,6 @@
 package com.example.sparta.order_service.domain.entity;
 
+import com.example.sparta.order_service.presentation.dto.response.OrderLineResponse;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -38,5 +39,15 @@ public class OrderLine {
         this.amounts = amounts;
         this.productId = productId;
         this.order = order;
+    }
+
+    public OrderLineResponse toResponse() {
+        return OrderLineResponse.builder()
+                .productId(productId)
+                .productName(productName)
+                .price(price)
+                .quantity(quantity)
+                .amount(amounts)
+                .build();
     }
 }

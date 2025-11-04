@@ -1,5 +1,6 @@
 package com.example.sparta.order_service.domain.entity;
 
+import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -24,12 +25,13 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID orderId;
     @Column(nullable = false)
-    private UUID userId;
+    private String userEmail;
     @Column(nullable = false)
     private Long totalAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
     private String deliveryMessage;
+    private Integer deliveryFee;
 
     @Embedded
     @AttributeOverrides({
@@ -76,9 +78,9 @@ public class Order {
     private String deletedBy;
 
     @Builder
-    public Order(UUID orderId, UUID userId, Long totalAmount, OrderStatus status, String deliveryMessage, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories) {
+    public Order(UUID orderId, String userEmail, Long totalAmount, OrderStatus status, String deliveryMessage, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories, Integer deliveryFee) {
         this.orderId = orderId;
-        this.userId = userId;
+        this.userEmail = userEmail;
         this.totalAmount = totalAmount;
         this.status = status;
         this.deliveryMessage = deliveryMessage;
@@ -86,5 +88,19 @@ public class Order {
         this.recipientInfo = recipientInfo;
         this.orderLines = orderLines;
         this.orderHistories = orderHistories;
+        this.deliveryFee = deliveryFee;
+    }
+
+    public OrderCreateResponse toCreateResponse() {
+        return OrderCreateResponse.builder()
+                .deliveryMessage(deliveryMessage)
+                .totalAmount(totalAmount)
+                .orderDate(createdAt)
+                .orderedBy(createdBy)
+                .state(status)
+                .originInfo(originInfo.toResponse())
+                .recipientInfo(recipientInfo.toResponse())
+                .orderLines(orderLines.stream().map(OrderLine::toResponse).toList())
+                .build();
     }
 }
