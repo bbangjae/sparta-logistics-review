@@ -3,13 +3,17 @@ package com.example.sparta.order_service.presentation.dto.request;
 import com.example.sparta.order_service.domain.entity.Order;
 import com.example.sparta.order_service.domain.entity.OrderLine;
 import com.example.sparta.order_service.domain.entity.OrderStatus;
+import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 
 import java.util.List;
 
-public record OrderRequest(String deliveryMessage,
-                           ShippingInfoRequest originInfo,
-                           ShippingInfoRequest recipientInfo,
-                           List<OrderLineRequest> orderLines) {
+public record OrderRequest(
+        @NotNull
+        String deliveryMessage,
+        @NotNull ShippingInfoRequest originInfo,
+        @NotNull ShippingInfoRequest recipientInfo,
+        @NotNull List<OrderLineRequest> orderLines) {
 
     public Order toEntity() {
         List<OrderLine> orderLineEntities = orderLines.stream()

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/v1/orders")
@@ -18,6 +19,8 @@ import java.net.URI;
 public class OrderController {
     private final OrderService orderService;
 
+    // TODO Principal 객체를 받아서 userEmail 할당해주기
+    // TODO AuditingAware 클래스 구현 및 createdBy 자동 주입 구현하기
     @PostMapping
     public ResponseEntity<OrderCreateResponse> create(@RequestBody OrderRequest request) {
         return ResponseEntity.created(URI.create("temp"))

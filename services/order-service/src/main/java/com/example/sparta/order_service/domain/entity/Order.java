@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -36,11 +37,11 @@ public class Order {
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "companyName", column = @Column(name = "origin_company_name", nullable = false, length = 100)),
-            @AttributeOverride(name = "name", column = @Column(name = "origin_name", nullable = false, length =  10)),
-            @AttributeOverride(name = "phone", column = @Column(name = "origin_phone", nullable = false, length = 11)),
+            @AttributeOverride(name = "name", column = @Column(name = "origin_name", nullable = false, length = 10)),
+            @AttributeOverride(name = "phone", column = @Column(name = "origin_phone", nullable = false, length = 13)),
             @AttributeOverride(name = "address", column = @Column(name = "origin_address", nullable = false, length = 50)),
             @AttributeOverride(name = "addressDetail", column = @Column(name = "origin_address_detail", nullable = false, length = 100)),
-            @AttributeOverride(name = "zipCode", column = @Column(name = "origin_zip_code", nullable = false, length =  5))
+            @AttributeOverride(name = "zipCode", column = @Column(name = "origin_zip_code", nullable = false, length = 5))
     })
     private ShippingInfo originInfo;
 
@@ -48,7 +49,7 @@ public class Order {
     @AttributeOverrides({
             @AttributeOverride(name = "companyName", column = @Column(name = "recipient_company_name", nullable = false, length = 100)),
             @AttributeOverride(name = "name", column = @Column(name = "recipient_name", nullable = false, length = 10)),
-            @AttributeOverride(name = "phone", column = @Column(name = "recipient_phone", nullable = false, length = 11)),
+            @AttributeOverride(name = "phone", column = @Column(name = "recipient_phone", nullable = false, length = 13)),
             @AttributeOverride(name = "address", column = @Column(name = "recipient_address", nullable = false, length = 50)),
             @AttributeOverride(name = "addressDetail", column = @Column(name = "recipient_address_detail", nullable = false, length = 100)),
             @AttributeOverride(name = "zipCode", column = @Column(name = "recipient_zip_code", nullable = false, length = 5))
@@ -102,5 +103,9 @@ public class Order {
                 .recipientInfo(recipientInfo.toResponse())
                 .orderLines(orderLines.stream().map(OrderLine::toResponse).toList())
                 .build();
+    }
+
+    public void setUserEmailToCreate(String email) {
+        userEmail = email;
     }
 }

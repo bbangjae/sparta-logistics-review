@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
+
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -15,6 +17,8 @@ public class OrderService {
 
     @Transactional
     public OrderCreateResponse create(OrderRequest request) {
-        return orderRepository.save(request.toEntity()).toCreateResponse();
+        Order order = request.toEntity();
+        order.setUserEmailToCreate("temp");
+        return orderRepository.save(order).toCreateResponse();
     }
 }

@@ -14,7 +14,7 @@ public class ShippingInfo {
     private String companyName;
     @Column(nullable = false, length = 10)
     private String name;
-    @Column(nullable = false, length = 11)
+    @Column(nullable = false, length = 13)
     private String phone;
     @Column(nullable = false, length = 50)
     private String address;
