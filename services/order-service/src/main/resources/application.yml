@@ -27,3 +27,5 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_DEFAULT_ZONE}
+    register-with-eureka: true
+    fetch-registry: true
