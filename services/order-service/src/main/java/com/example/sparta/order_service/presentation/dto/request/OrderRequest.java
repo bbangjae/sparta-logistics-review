@@ -18,9 +18,9 @@ public record OrderRequest(
         List<OrderLine> orderLineEntities = orderLines.stream()
                 .map(OrderLineRequest::toEntity)
                 .toList();
-        long totalAmount = orderLines.stream()
-                .map(request -> request.price() * request.quantity())
-                .reduce(0L, Long::sum);
+        long totalAmount = orderLineEntities.stream()
+                .mapToLong(OrderLine::getAmounts)
+                .sum();
 
         Order order = Order.builder()
                 .deliveryMessage(deliveryMessage)

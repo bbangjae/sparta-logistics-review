@@ -4,6 +4,7 @@ import com.example.sparta.order_service.presentation.dto.response.OrderLineRespo
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
@@ -22,6 +23,7 @@ public class OrderLine {
     @Column(nullable = false)
     private Integer quantity;
     @Column(nullable = false)
+    @Getter
     private Long amounts;
     @Column(nullable = false)
     private UUID productId;
