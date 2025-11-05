@@ -15,11 +15,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessException;
 
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -56,7 +58,7 @@ public class OrderUnitTests {
         );
     }
 
-    @DisplayName("주문 생성하기")
+    @DisplayName("주문 생성 성공")
     @Test
     void createOrder_Success() {
         Order order = orderRequest.toEntity();
@@ -69,8 +71,22 @@ public class OrderUnitTests {
         OrderCreateResponse createResponse = orderService.create(orderRequest);
 
         assertThat(createResponse).isNotNull();
+        assertThat(createResponse.totalAmount()).isEqualTo(35000L);
         assertThat(createResponse.deliveryMessage().equals("배송메시지 테스트"));
 
         verify(orderRepository, times(1)).save(orderArgumentCaptor.capture());
+    }
+
+    @DisplayName("주문 생성 실패: DB 저장 중 에러 발생")
+    @Test
+    void createOrder_Fail_DB() {
+        when(orderRepository.save(any(Order.class)))
+                .thenThrow(new DataAccessException("Test DB Error") {});
+
+        assertThatThrownBy(() -> orderService.create(orderRequest))
+                .isInstanceOf(DataAccessException.class)
+                .hasMessageContaining("Test DB Error");
+
+        verify(orderRepository, times(1)).save(any(Order.class));
     }
 }
