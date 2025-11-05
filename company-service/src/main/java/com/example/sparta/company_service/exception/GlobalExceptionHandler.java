@@ -1,6 +1,8 @@
-package com.example.sparta.common.exception;
+package com.example.sparta.company_service.exception;
 
 import com.example.sparta.common.dto.ErrorResponse;
+import com.example.sparta.common.exception.BusinessException;
+import com.example.sparta.common.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -12,11 +14,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 /**
- * 전역 예외 처리기
+ * Company Service 전역 예외 처리기
  * 
- * 모든 서비스에서 발생하는 예외를 일관되게 처리합니다.
- * 단일 책임 원칙(SRP)에 따라 예외를 HTTP 응답으로 변환하는 책임만 가집니다.
- * 개방-폐쇄 원칙(OCP)에 따라 새로운 예외 타입 추가 시 핸들러를 쉽게 확장할 수 있습니다.
+ * company-service에서 발생하는 예외를 일관되게 처리합니다.
+ * common 모듈의 ErrorCode, ErrorResponse를 재사용하여 일관성을 유지하면서도
+ * 서비스별 커스터마이징이 가능한 구조입니다.
  */
 @Slf4j
 @RestControllerAdvice
@@ -41,15 +43,36 @@ public class GlobalExceptionHandler {
         
         // 클라이언트 에러는 WARN, 서버 에러는 ERROR 로그
         if (errorCode.isClientError()) {
-            log.warn("비즈니스 예외 발생 - 코드: {}, 메시지: {}, 경로: {}", 
+            log.warn("[Company Service] 비즈니스 예외 발생 - 코드: {}, 메시지: {}, 경로: {}", 
                     errorCode.getCode(), ex.getMessage(), requestURI);
         } else {
-            log.error("비즈니스 예외 발생 - 코드: {}, 메시지: {}, 경로: {}", 
+            log.error("[Company Service] 비즈니스 예외 발생 - 코드: {}, 메시지: {}, 경로: {}", 
                     errorCode.getCode(), ex.getMessage(), requestURI, ex);
         }
         
         ErrorResponse errorResponse = ErrorResponse.of(errorCode, ex.getMessage(), requestURI);
         return ResponseEntity.status(errorCode.getHttpStatus()).body(errorResponse);
+    }
+    
+    /**
+     * 업체 조회 실패 예외 처리
+     * 
+     * CompanyNotFoundException을 404 응답으로 변환합니다.
+     * 
+     * @param ex 업체 조회 실패 예외
+     * @param request HTTP 요청 정보
+     * @return 에러 응답
+     */
+    @ExceptionHandler(CompanyNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCompanyNotFoundException(
+            CompanyNotFoundException ex, HttpServletRequest request) {
+        
+        String requestURI = request.getRequestURI();
+        
+        log.warn("[Company Service] 업체 조회 실패 - 메시지: {}, 경로: {}", ex.getMessage(), requestURI);
+        
+        ErrorResponse errorResponse = ErrorResponse.of(ex.getErrorCode(), ex.getMessage(), requestURI);
+        return ResponseEntity.status(ex.getErrorCode().getHttpStatus()).body(errorResponse);
     }
     
     /**
@@ -66,7 +89,7 @@ public class GlobalExceptionHandler {
         String requestURI = request.getRequestURI();
         String message = String.format("필수 파라미터 '%s'가 누락되었습니다.", ex.getParameterName());
         
-        log.warn("필수 파라미터 누락 - 파라미터: {}, 경로: {}", ex.getParameterName(), requestURI);
+        log.warn("[Company Service] 필수 파라미터 누락 - 파라미터: {}, 경로: {}", ex.getParameterName(), requestURI);
         
         ErrorResponse errorResponse = ErrorResponse.of(
                 ErrorCode.MISSING_REQUEST_PARAMETER, message, requestURI);
@@ -88,7 +111,7 @@ public class GlobalExceptionHandler {
         String message = String.format("파라미터 '%s'의 값 '%s'는 %s 타입으로 변환할 수 없습니다.", 
                 ex.getName(), ex.getValue(), ex.getRequiredType().getSimpleName());
         
-        log.warn("타입 변환 실패 - 파라미터: {}, 값: {}, 타입: {}, 경로: {}", 
+        log.warn("[Company Service] 타입 변환 실패 - 파라미터: {}, 값: {}, 타입: {}, 경로: {}", 
                 ex.getName(), ex.getValue(), ex.getRequiredType().getSimpleName(), requestURI);
         
         ErrorResponse errorResponse = ErrorResponse.of(
@@ -112,7 +135,7 @@ public class GlobalExceptionHandler {
         
         String requestURI = request.getRequestURI();
         
-        log.error("예상하지 못한 런타임 에러 발생 - 메시지: {}, 경로: {}, 스택트레이스: {}", 
+        log.error("[Company Service] 예상하지 못한 런타임 에러 발생 - 메시지: {}, 경로: {}, 스택트레이스: {}", 
                 ex.getMessage(), requestURI, Arrays.toString(ex.getStackTrace()));
         
         ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, requestURI);
@@ -135,7 +158,7 @@ public class GlobalExceptionHandler {
         
         String requestURI = request.getRequestURI();
         
-        log.error("예상하지 못한 에러 발생 - 타입: {}, 메시지: {}, 경로: {}", 
+        log.error("[Company Service] 예상하지 못한 에러 발생 - 타입: {}, 메시지: {}, 경로: {}", 
                 ex.getClass().getSimpleName(), ex.getMessage(), requestURI, ex);
         
         ErrorResponse errorResponse = ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, requestURI);
