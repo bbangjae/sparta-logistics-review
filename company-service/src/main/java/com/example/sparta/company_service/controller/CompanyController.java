@@ -2,6 +2,8 @@ package com.example.sparta.company_service.controller;
 
 import com.example.sparta.company_service.dto.CompanyResponseDto;
 import com.example.sparta.company_service.service.CompanyService;
+import com.example.sparta.common.exception.BusinessException;
+import com.example.sparta.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +47,18 @@ public class CompanyController {
             @RequestParam(required = false) String status,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
+        // 페이지 크기 검증
+        if (pageable.getPageSize() > 100) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, 
+                    "페이지 크기는 100을 초과할 수 없습니다. 요청된 크기: " + pageable.getPageSize());
+        }
+        
+        // 페이지 번호 검증
+        if (pageable.getPageNumber() < 0) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, 
+                    "페이지 번호는 0 이상이어야 합니다. 요청된 번호: " + pageable.getPageNumber());
+        }
+        
         Page<CompanyResponseDto> companies = companyService.getCompanies(name, hubId, status, pageable);
         return ResponseEntity.ok(companies);
     }

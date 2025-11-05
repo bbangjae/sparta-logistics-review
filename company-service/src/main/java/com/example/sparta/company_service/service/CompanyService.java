@@ -3,7 +3,10 @@ package com.example.sparta.company_service.service;
 import com.example.sparta.company_service.dto.CompanyResponseDto;
 import com.example.sparta.company_service.dto.CompanySearchCriteria;
 import com.example.sparta.company_service.entity.Company;
+import com.example.sparta.company_service.exception.CompanyNotFoundException;
 import com.example.sparta.company_service.repository.CompanyRepository;
+import com.example.sparta.common.exception.BusinessException;
+import com.example.sparta.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -67,18 +70,24 @@ public class CompanyService implements CompanyQueryService {
     public Page<CompanyResponseDto> searchCompanies(CompanySearchCriteria searchCriteria, Pageable pageable) {
         log.debug("업체 검색 실행 - 조건: {}", searchCriteria);
         
-        // Repository를 통한 데이터 조회
-        Page<Company> companies = companyRepository.findCompaniesWithFilters(
-                searchCriteria.getName(),
-                searchCriteria.getHubId(),
-                searchCriteria.getStatus(),
-                pageable
-        );
-        
-        log.debug("검색 결과: {}개 업체 조회됨 (전체: {}개)", 
-                 companies.getNumberOfElements(), companies.getTotalElements());
-        
-        // Entity를 DTO로 변환하여 반환
-        return companies.map(CompanyResponseDto::from);
+        try {
+            // Repository를 통한 데이터 조회
+            Page<Company> companies = companyRepository.findCompaniesWithFilters(
+                    searchCriteria.getName(),
+                    searchCriteria.getHubId(),
+                    searchCriteria.getStatus(),
+                    pageable
+            );
+            
+            log.debug("검색 결과: {}개 업체 조회됨 (전체: {}개)", 
+                     companies.getNumberOfElements(), companies.getTotalElements());
+            
+            // Entity를 DTO로 변환하여 반환
+            return companies.map(CompanyResponseDto::from);
+            
+        } catch (Exception e) {
+            log.error("업체 검색 중 오류 발생 - 조건: {}, 오류: {}", searchCriteria, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "업체 검색 중 오류가 발생했습니다.", e);
+        }
     }
 }
