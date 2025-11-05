@@ -1,0 +1,8 @@
+server:
+  port: ${ORDER_SERVICE_PORT}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh
