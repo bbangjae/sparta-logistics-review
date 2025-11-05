@@ -2,7 +2,7 @@ package com.example.sparta.order_service;
 
 import com.example.sparta.order_service.application.service.OrderService;
 import com.example.sparta.order_service.domain.entity.Order;
-import com.example.sparta.order_service.domain.repository.OrderRepository;
+import com.example.sparta.order_service.domain.repository.OrderCommandRepository;
 import com.example.sparta.order_service.presentation.dto.request.OrderLineRequest;
 import com.example.sparta.order_service.presentation.dto.request.OrderRequest;
 import com.example.sparta.order_service.presentation.dto.request.ShippingInfoRequest;
@@ -30,7 +30,7 @@ public class OrderUnitTests {
     @InjectMocks
     private OrderService orderService;
     @Mock
-    private OrderRepository orderRepository;
+    private OrderCommandRepository orderRepository;
 
     private OrderRequest orderRequest;
 
