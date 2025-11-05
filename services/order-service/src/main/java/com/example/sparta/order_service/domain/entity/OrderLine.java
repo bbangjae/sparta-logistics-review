@@ -50,4 +50,8 @@ public class OrderLine {
                 .amount(amounts)
                 .build();
     }
+
+    public void setOrderToCreate(Order order) {
+        this.order = order;
+    }
 }

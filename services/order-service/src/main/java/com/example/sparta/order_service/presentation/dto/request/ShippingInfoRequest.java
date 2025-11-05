@@ -3,7 +3,9 @@ package com.example.sparta.order_service.presentation.dto.request;
 import com.example.sparta.order_service.domain.entity.ShippingInfo;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
+@Builder
 public record ShippingInfoRequest(
         @NotNull
         @Size(min = 2, max = 20)
