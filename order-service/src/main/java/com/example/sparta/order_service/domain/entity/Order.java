@@ -1,6 +1,9 @@
 package com.example.sparta.order_service.domain.entity;
 
 import com.example.sparta.common.model.BaseEntity;
+import com.example.sparta.order_service.presentation.dto.request.OrderLineRequest;
+import com.example.sparta.order_service.presentation.dto.request.OrderRequest;
+import com.example.sparta.order_service.presentation.dto.request.OrderUpdateRequest;
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
 import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import jakarta.persistence.*;
@@ -101,6 +104,21 @@ public class Order extends BaseEntity {
 
     public void setUserEmailToCreate(String email) {
         userEmail = email;
+    }
+
+    public void update(OrderUpdateRequest request) {
+        userEmail = request.userEmail();
+        status = request.status();
+        deliveryMessage = request.deliveryMessage();
+        dueDate = request.dueDate();
+        originInfo = request.originInfo().toEntity();
+        recipientInfo = request.recipientInfo().toEntity();
+        orderLines.clear();
+        orderLines.addAll(request.orderLines().stream()
+                .map(OrderLineRequest::toEntity)
+                .toList());
+        representativeProductName = orderLines.get(0).toResponse().productName();
+        orderLineCount = orderLines.size();
     }
 
     public OrderDetailResponse toDetailResponse() {

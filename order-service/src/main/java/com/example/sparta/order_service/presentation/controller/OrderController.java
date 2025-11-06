@@ -3,6 +3,7 @@ package com.example.sparta.order_service.presentation.controller;
 import com.example.sparta.order_service.application.service.OrderQueryService;
 import com.example.sparta.order_service.application.service.OrderService;
 import com.example.sparta.order_service.presentation.dto.request.OrderRequest;
+import com.example.sparta.order_service.presentation.dto.request.OrderUpdateRequest;
 import com.example.sparta.order_service.presentation.dto.request.SearchCondition;
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
 import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @RequestMapping("/v1/orders")
 @RequiredArgsConstructor
 public class OrderController {
-    private final OrderService orderService;
+    private final OrderService commandService;
     private final OrderQueryService queryService;
 
     // TODO Principal 객체를 받아서 userEmail 할당해주기
@@ -29,7 +30,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderCreateResponse> create(@RequestBody OrderRequest request) {
         return ResponseEntity.created(URI.create("temp"))
-                .body(orderService.create(request));
+                .body(commandService.create(request));
     }
 
     @GetMapping
@@ -40,6 +41,20 @@ public class OrderController {
     @GetMapping("/{id}")
     public ResponseEntity<OrderDetailResponse> getOrderDetail(@PathVariable UUID id) {
         return ResponseEntity.ok(queryService.findById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<OrderDetailResponse> update(@PathVariable UUID id, @RequestBody OrderUpdateRequest request) {
+        return ResponseEntity.ok(commandService.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        Long tempUserId = 0L;
+        commandService.delete(id, tempUserId);
+        return ResponseEntity.noContent()
+                .location(URI.create("delete-temp-url"))
+                .build();
     }
 
 }
