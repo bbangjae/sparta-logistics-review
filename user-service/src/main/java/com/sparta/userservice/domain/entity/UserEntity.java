@@ -1,5 +1,6 @@
 package com.sparta.userservice.domain.entity;
 
+import com.example.sparta.common.model.BaseEntity;
 import com.sparta.userservice.application.dto.request.UserCreateRequest;
 import com.sparta.userservice.domain.enums.UserRoleEnum;
 import com.sparta.userservice.domain.enums.UserStatusEnum;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserEntity extends BaseEntity{
+public class UserEntity extends BaseEntity {
     @Id
     @GeneratedValue
     @Column(name = "user_id", updatable = false, nullable = false)
