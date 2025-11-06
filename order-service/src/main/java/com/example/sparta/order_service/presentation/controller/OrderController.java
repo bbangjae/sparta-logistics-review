@@ -5,6 +5,7 @@ import com.example.sparta.order_service.application.service.OrderService;
 import com.example.sparta.order_service.presentation.dto.request.OrderRequest;
 import com.example.sparta.order_service.presentation.dto.request.SearchCondition;
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
+import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import com.example.sparta.order_service.presentation.dto.response.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1/orders")
@@ -34,4 +36,10 @@ public class OrderController {
     public ResponseEntity<Page<OrderResponse>> search(SearchCondition condition, Pageable pageable) {
         return ResponseEntity.ok(queryService.search(condition, "tempEmail", pageable));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderDetailResponse> getOrderDetail(@PathVariable UUID id) {
+        return ResponseEntity.ok(queryService.findById(id));
+    }
+
 }

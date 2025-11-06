@@ -2,6 +2,7 @@ package com.example.sparta.order_service.domain.entity;
 
 import com.example.sparta.common.model.BaseEntity;
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
+import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -100,5 +101,18 @@ public class Order extends BaseEntity {
 
     public void setUserEmailToCreate(String email) {
         userEmail = email;
+    }
+
+    public OrderDetailResponse toDetailResponse() {
+        return OrderDetailResponse.builder()
+                .deliveryMessage(deliveryMessage)
+                .totalAmount(totalAmount)
+                .orderDate(getCreatedAt())
+                .orderedBy(userEmail)
+                .state(status)
+                .originInfo(originInfo.toResponse())
+                .recipientInfo(recipientInfo.toResponse())
+                .orderLines(orderLines.stream().map(OrderLine::toResponse).toList())
+                .build();
     }
 }
