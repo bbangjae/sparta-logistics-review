@@ -14,10 +14,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Location {
 
-    private static final BigDecimal MIN_LATITUDE = new BigDecimal("-90.00000000");
-    private static final BigDecimal MAX_LATITUDE = new BigDecimal("90.00000000");
-    private static final BigDecimal MIN_LONGITUDE = new BigDecimal("-180.00000000");
-    private static final BigDecimal MAX_LONGITUDE = new BigDecimal("180.00000000");
+    private static final BigDecimal MIN_LATITUDE = new BigDecimal("33.00000000");
+    private static final BigDecimal MAX_LATITUDE = new BigDecimal("38.60000000");
+    private static final BigDecimal MIN_LONGITUDE = new BigDecimal("125.00000000");
+    private static final BigDecimal MAX_LONGITUDE = new BigDecimal("131.00000000");
 
     private static final int SCALE = 8;
 
