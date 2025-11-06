@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-@Repository
 public interface OrderQueryRepository {
     Page<OrderResponse> search(SearchCondition condition, String userEmail, Pageable pageable);
 }
