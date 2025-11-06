@@ -57,3 +57,8 @@ subprojects {
         testAnnotationProcessor 'org.projectlombok:lombok'
     }
 }
+
+task runAll {
+    group 'application'
+    description 'Run all services'
+}

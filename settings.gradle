@@ -1,7 +1,10 @@
 rootProject.name = 'msa-logistics-project'
 
+include 'common'
 include 'api-gateway'
 include 'eureka-server'
 include 'config-server'
 include 'hub-service'
-include 'user-service'
+include 'order-service'
+include 'company-service'
+include 'product-service'
