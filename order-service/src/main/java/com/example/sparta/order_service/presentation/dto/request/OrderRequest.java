@@ -31,6 +31,9 @@ public record OrderRequest(
                 .orderLines(orderLineEntities)
                 .status(OrderStatus.PAYMENT_PENDING)
                 .totalAmount(totalAmount)
+                .dueDate(dueDate)
+                .representativeProductName(orderLines.get(0).productName())
+                .orderLineCount(orderLines.size())
                 .build();
 
         orderLineEntities.forEach(orderLine -> orderLine.setOrderToCreate(order));

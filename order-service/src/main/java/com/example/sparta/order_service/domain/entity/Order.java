@@ -31,6 +31,8 @@ public class Order extends BaseEntity {
     private Integer deliveryFee;
     @Column(nullable = false)
     private LocalDateTime dueDate;
+    private String representativeProductName;
+    private int orderLineCount;
 
     @Embedded
     @AttributeOverrides({
@@ -66,19 +68,22 @@ public class Order extends BaseEntity {
     private List<OrderHistory> orderHistories = new ArrayList<>();
 
     @Builder
-    public Order(UUID orderId, String userEmail, Long totalAmount, OrderStatus status, String deliveryMessage, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories, Integer deliveryFee, LocalDateTime dueDate) {
+    public Order(UUID orderId, String userEmail, Long totalAmount, OrderStatus status, String deliveryMessage, Integer deliveryFee, LocalDateTime dueDate, String representativeProductName, int orderLineCount, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories) {
         this.orderId = orderId;
         this.userEmail = userEmail;
         this.totalAmount = totalAmount;
         this.status = status;
         this.deliveryMessage = deliveryMessage;
+        this.deliveryFee = deliveryFee;
+        this.dueDate = dueDate;
+        this.representativeProductName = representativeProductName;
+        this.orderLineCount = orderLineCount;
         this.originInfo = originInfo;
         this.recipientInfo = recipientInfo;
         this.orderLines = orderLines;
         this.orderHistories = orderHistories;
-        this.deliveryFee = deliveryFee;
-        this.dueDate = dueDate;
     }
+
 
     public OrderCreateResponse toCreateResponse() {
         return OrderCreateResponse.builder()
