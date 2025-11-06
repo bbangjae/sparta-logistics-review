@@ -63,7 +63,8 @@ public class OrderRepositoryImpl implements OrderQueryRepository {
 //                        userEmailEq(userEmail),
                         statusEq(condition.state()),
                         orderDateBetween(condition.startDate(), condition.endDate()),
-                        searchByKeyword(condition.searchType(), condition.keyword())
+                        searchByKeyword(condition.searchType(), condition.keyword()),
+                        order.deletedAt.isNull()
                 )
                 .orderBy(getSortOrderSpecifiers(pageable.getSort()))
                 .offset(pageable.getOffset())
@@ -77,7 +78,8 @@ public class OrderRepositoryImpl implements OrderQueryRepository {
 //                        userEmailEq(userEmail),
                         statusEq(condition.state()),
                         orderDateBetween(condition.startDate(), condition.endDate()),
-                        searchByKeyword(condition.searchType(), condition.keyword())
+                        searchByKeyword(condition.searchType(), condition.keyword()),
+                        order.deletedAt.isNull()
                 );
         Long total = countQuery.fetchOne();
         if (total == null)
