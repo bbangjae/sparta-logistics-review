@@ -2,11 +2,10 @@ package com.example.sparta.common.config;
 
 import java.util.Optional;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.stereotype.Component;
-
 
 public class AuditorAwareImpl implements AuditorAware<Long> {
-    
+
+    @Override
     public Optional<Long> getCurrentAuditor() {
         // TODO: Spring Security 인증 구현 후 주석 해제
         /*
