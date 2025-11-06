@@ -1,15 +1,11 @@
 package com.example.sparta.order_service.domain.entity;
 
+import com.example.sparta.common.model.BaseEntity;
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -21,7 +17,7 @@ import java.util.UUID;
 @Table(name = "p_orders")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public class Order {
+public class Order extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID orderId;
@@ -33,6 +29,8 @@ public class Order {
     private OrderStatus status;
     private String deliveryMessage;
     private Integer deliveryFee;
+    @Column(nullable = false)
+    private LocalDateTime dueDate;
 
     @Embedded
     @AttributeOverrides({
@@ -67,19 +65,8 @@ public class Order {
     @OrderBy("createdAt DESC")
     private List<OrderHistory> orderHistories = new ArrayList<>();
 
-    @CreatedDate
-    private LocalDateTime createdAt;
-    @CreatedBy
-    private String createdBy;
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
-    @LastModifiedBy
-    private String updatedBy;
-    private LocalDateTime deletedAt;
-    private String deletedBy;
-
     @Builder
-    public Order(UUID orderId, String userEmail, Long totalAmount, OrderStatus status, String deliveryMessage, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories, Integer deliveryFee) {
+    public Order(UUID orderId, String userEmail, Long totalAmount, OrderStatus status, String deliveryMessage, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories, Integer deliveryFee, LocalDateTime dueDate) {
         this.orderId = orderId;
         this.userEmail = userEmail;
         this.totalAmount = totalAmount;
@@ -90,14 +77,15 @@ public class Order {
         this.orderLines = orderLines;
         this.orderHistories = orderHistories;
         this.deliveryFee = deliveryFee;
+        this.dueDate = dueDate;
     }
 
     public OrderCreateResponse toCreateResponse() {
         return OrderCreateResponse.builder()
                 .deliveryMessage(deliveryMessage)
                 .totalAmount(totalAmount)
-                .orderDate(createdAt)
-                .orderedBy(createdBy)
+                .orderDate(getCreatedAt())
+                .orderedBy(userEmail)
                 .state(status)
                 .originInfo(originInfo.toResponse())
                 .recipientInfo(recipientInfo.toResponse())

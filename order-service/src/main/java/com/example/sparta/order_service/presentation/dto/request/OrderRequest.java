@@ -5,11 +5,13 @@ import com.example.sparta.order_service.domain.entity.OrderLine;
 import com.example.sparta.order_service.domain.entity.OrderStatus;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record OrderRequest(
         @NotNull
         String deliveryMessage,
+        @NotNull LocalDateTime dueDate,
         @NotNull ShippingInfoRequest originInfo,
         @NotNull ShippingInfoRequest recipientInfo,
         @NotNull List<OrderLineRequest> orderLines) {

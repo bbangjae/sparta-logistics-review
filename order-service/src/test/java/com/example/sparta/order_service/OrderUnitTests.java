@@ -17,6 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,6 +55,7 @@ public class OrderUnitTests {
 
         orderRequest = new OrderRequest(
                 "배송메시지 테스트",
+                LocalDateTime.of(LocalDate.of(2999, 12, 31), LocalTime.now()),
                 originInfo,
                 recipientInfo,
                 orderLines
