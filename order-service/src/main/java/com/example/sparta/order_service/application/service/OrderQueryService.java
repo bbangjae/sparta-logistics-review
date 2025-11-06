@@ -16,9 +16,7 @@ public class OrderQueryService {
     private final OrderQueryRepository queryRepository;
 
     // TODO 사용자 권한에 따른 verify 절차 필요
-    public Page<OrderResponse> search(SearchCondition condition, String userEmail) {
-        Pageable pageable = PageRequest
-                .of(condition.page(), 10, Sort.by(condition.sort()));
+    public Page<OrderResponse> search(SearchCondition condition, String userEmail, Pageable pageable) {
         return queryRepository.search(condition, userEmail, pageable);
     }
 }

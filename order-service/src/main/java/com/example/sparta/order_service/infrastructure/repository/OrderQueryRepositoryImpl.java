@@ -60,7 +60,7 @@ public class OrderQueryRepositoryImpl implements OrderQueryRepository {
                 ))
                 .from(order)
                 .where(
-                        userEmailEq(userEmail),
+//                        userEmailEq(userEmail),
                         statusEq(condition.state()),
                         orderDateBetween(condition.startDate(), condition.endDate()),
                         searchByKeyword(condition.searchType(), condition.keyword())
@@ -74,7 +74,7 @@ public class OrderQueryRepositoryImpl implements OrderQueryRepository {
                 .select(order.count())
                 .from(order)
                 .where(
-                        userEmailEq(userEmail),
+//                        userEmailEq(userEmail),
                         statusEq(condition.state()),
                         orderDateBetween(condition.startDate(), condition.endDate()),
                         searchByKeyword(condition.searchType(), condition.keyword())

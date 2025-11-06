@@ -8,6 +8,7 @@ import com.example.sparta.order_service.presentation.dto.response.OrderCreateRes
 import com.example.sparta.order_service.presentation.dto.response.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<OrderResponse>> search(SearchCondition condition) {
-        return ResponseEntity.ok(queryService.search(condition, "tempEmail"));
+    public ResponseEntity<Page<OrderResponse>> search(SearchCondition condition, Pageable pageable) {
+        return ResponseEntity.ok(queryService.search(condition, "tempEmail", pageable));
     }
 }
