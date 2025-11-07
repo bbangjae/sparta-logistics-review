@@ -1,7 +1,7 @@
 package com.sparta.user_service.domain.entity;
 
 import com.example.sparta.common.model.BaseEntity;
-import com.sparta.user_service.application.dto.request.UserCreateRequest;
+import com.sparta.user_service.presentation.request.UserCreateRequest;
 import com.sparta.user_service.domain.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import jakarta.persistence.*;

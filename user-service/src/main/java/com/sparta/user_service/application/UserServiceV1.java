@@ -1,11 +1,11 @@
 package com.sparta.user_service.application;
 
-import com.sparta.user_service.application.dto.request.UserCreateRequest;
-import com.sparta.user_service.application.exception.DuplicateUserException;
-import com.sparta.user_service.application.exception.ErrorCode;
+import com.example.sparta.common.exception.BusinessException;
+import com.example.sparta.common.exception.ErrorCode;
+import com.sparta.user_service.presentation.request.UserCreateRequest;
 import com.sparta.user_service.domain.entity.UserEntity;
 import com.sparta.user_service.domain.repository.UserRepository;
-import com.sparta.user_service.presentation.dto.response.UserCreateResponse;
+import com.sparta.user_service.presentation.response.UserCreateResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,7 +24,7 @@ public class UserServiceV1 {
     public UserCreateResponse create(UserCreateRequest signupRequest){
         String username = signupRequest.getUsername();
         if(userRepository.findByUsername(username).isPresent()){
-            throw new DuplicateUserException(ErrorCode.DUPLICATE_USER);
+            throw new BusinessException(ErrorCode.DUPLICATED_USER);
         }
 
         String hashedPassword = passwordEncoder.encode(signupRequest.getPassword());

@@ -1,4 +1,4 @@
-package com.sparta.user_service.application.dto.request;
+package com.sparta.user_service.presentation.request;
 
 import com.sparta.user_service.domain.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;

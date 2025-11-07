@@ -1,8 +1,8 @@
 package com.sparta.user_service.presentation.controller;
 
 import com.sparta.user_service.application.UserServiceV1;
-import com.sparta.user_service.application.dto.request.UserCreateRequest;
-import com.sparta.user_service.presentation.dto.response.UserCreateResponse;
+import com.sparta.user_service.presentation.request.UserCreateRequest;
+import com.sparta.user_service.presentation.response.UserCreateResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
