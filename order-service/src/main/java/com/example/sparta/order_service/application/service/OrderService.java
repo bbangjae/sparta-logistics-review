@@ -20,6 +20,7 @@ import java.util.UUID;
 public class OrderService {
     private final OrderRepository orderRepository;
 
+    // TODO 주문 생성 시 배송 아이디, 허브 아이디 할당
     @Transactional
     public OrderCreateResponse create(OrderRequest request) {
         Order order = request.toEntity();
