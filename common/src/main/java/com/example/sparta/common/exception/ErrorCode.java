@@ -45,7 +45,8 @@ public enum ErrorCode {
     // User 관련 에러 (6000번대)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USR001", "사용자를 찾을 수 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "USR002", "인증이 필요합니다."),
-    
+    DUPLICATED_USER(HttpStatus.CONFLICT, "USR003", "이미 존재하는 사용자입니다."),
+
     // AI 관련 에러 (7000번대)
     AI_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI001", "AI 서비스를 사용할 수 없습니다.");
     
