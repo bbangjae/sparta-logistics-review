@@ -54,5 +54,9 @@ public class UserEntity extends BaseEntity {
                 .slackId(userCreateRequest.getSlackId())
                 .build();
     }
+
+    public void changeStatus(UserStatusEnum status) {
+        this.status = status;
+    }
 }
 

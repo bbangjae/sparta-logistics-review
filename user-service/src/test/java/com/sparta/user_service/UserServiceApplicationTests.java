@@ -1,4 +1,4 @@
-package com.sparta.userservice;
+package com.sparta.user_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
