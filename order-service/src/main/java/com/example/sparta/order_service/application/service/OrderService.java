@@ -23,7 +23,7 @@ public class OrderService {
     @Transactional
     public OrderCreateResponse create(OrderRequest request) {
         Order order = request.toEntity();
-        order.setUserEmailToCreate("temp");
+        order.setUserEmailToCreate("tempUserEmail");
         return orderRepository.save(order).toCreateResponse();
     }
 

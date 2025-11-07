@@ -28,6 +28,8 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private String userEmail;
     @Column(nullable = false)
+    private UUID deliveryId;
+    @Column(nullable = false)
     private Long totalAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
