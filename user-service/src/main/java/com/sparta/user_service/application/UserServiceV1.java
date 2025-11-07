@@ -27,15 +27,9 @@ public class UserServiceV1 {
             throw new DuplicateUserException(ErrorCode.DUPLICATE_USER);
         }
 
-        log.info("raw password: {}", signupRequest.getPassword());
         String hashedPassword = passwordEncoder.encode(signupRequest.getPassword());
-        log.info("encoded password: {}", hashedPassword);
-
         UserEntity user = UserEntity.create(signupRequest, hashedPassword);
-        log.info("user.getPassword() after create(): {}", user.getPassword());
-
         UserEntity savedUser = userRepository.save(user);
-        log.info("user.getPassword() after save(): {}", savedUser.getPassword());
 
         return UserCreateResponse.of(savedUser);
     }
