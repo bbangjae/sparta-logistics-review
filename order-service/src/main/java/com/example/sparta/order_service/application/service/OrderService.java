@@ -2,6 +2,7 @@ package com.example.sparta.order_service.application.service;
 
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
+import com.example.sparta.order_service.application.exception.OrderStatusException;
 import com.example.sparta.order_service.domain.entity.Order;
 import com.example.sparta.order_service.domain.repository.OrderRepository;
 import com.example.sparta.order_service.presentation.dto.request.OrderRequest;
@@ -31,6 +32,9 @@ public class OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND, "id와 일치하는 주문이 존재하지 않습니다. \n id: " + id));
 
+        if(!order.isPreparing())
+            throw new OrderStatusException(ErrorCode.ORDER_MODIFICATION_NOT_ALLOWED, "상품이 이미 출고되어 주문 변경이 불가합니다.");
+
         order.update(request);
 
         return order.toDetailResponse();
@@ -40,6 +44,9 @@ public class OrderService {
     public void delete(UUID id, Long userId) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND, "id와 일치하는 주문이 존재하지 않습니다. \n id: " + id));
+
+        if(!order.isPreparing())
+            throw new OrderStatusException(ErrorCode.ORDER_MODIFICATION_NOT_ALLOWED, "상품이 이미 출고되어 주문 변경이 불가합니다.");
 
         order.delete(userId);
     }

@@ -121,6 +121,10 @@ public class Order extends BaseEntity {
         orderLineCount = orderLines.size();
     }
 
+    public boolean isPreparing() {
+        return status == OrderStatus.PAYMENT_PENDING || status == OrderStatus.PREPARING_FOR_SHIPMENT;
+    }
+
     public OrderDetailResponse toDetailResponse() {
         return OrderDetailResponse.builder()
                 .deliveryMessage(deliveryMessage)
