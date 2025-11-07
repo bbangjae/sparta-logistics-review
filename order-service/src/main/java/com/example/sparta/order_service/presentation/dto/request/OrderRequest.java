@@ -5,11 +5,13 @@ import com.example.sparta.order_service.domain.entity.OrderLine;
 import com.example.sparta.order_service.domain.entity.OrderStatus;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record OrderRequest(
         @NotNull
         String deliveryMessage,
+        @NotNull LocalDateTime dueDate,
         @NotNull ShippingInfoRequest originInfo,
         @NotNull ShippingInfoRequest recipientInfo,
         @NotNull List<OrderLineRequest> orderLines) {
@@ -29,6 +31,9 @@ public record OrderRequest(
                 .orderLines(orderLineEntities)
                 .status(OrderStatus.PAYMENT_PENDING)
                 .totalAmount(totalAmount)
+                .dueDate(dueDate)
+                .representativeProductName(orderLines.get(0).productName())
+                .orderLineCount(orderLines.size())
                 .build();
 
         orderLineEntities.forEach(orderLine -> orderLine.setOrderToCreate(order));
