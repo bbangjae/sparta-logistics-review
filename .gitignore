@@ -43,3 +43,9 @@ env.properties
 
 ### Q Classes
 **/generated/
+
+# Binary/Cache Files
+*.bin
+
+# Lock files
+*.lock

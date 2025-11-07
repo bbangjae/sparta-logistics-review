@@ -57,3 +57,18 @@ subprojects {
         testAnnotationProcessor 'org.projectlombok:lombok'
     }
 }
+
+task runAll {
+    group 'application'
+    description 'Run all services'
+}
+
+// 멀티 모듈에서 전체 빌드를 위한 설정
+// bootJar 빌드를 하지 않고 각 서비스의 jar파일만 빌드하도록
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
