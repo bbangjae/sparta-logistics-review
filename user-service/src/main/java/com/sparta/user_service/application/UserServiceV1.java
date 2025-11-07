@@ -51,4 +51,12 @@ public class UserServiceV1 {
         user.changeStatus(status);  // ← 단일 메서드 호출
         return userRepository.save(user);
     }
+
+    public UserEntity changeRole(UUID userId, UserRoleEnum role) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.changeRole(role);   // ← 도메인 메서드 호출
+        return userRepository.save(user);
+    }
 }

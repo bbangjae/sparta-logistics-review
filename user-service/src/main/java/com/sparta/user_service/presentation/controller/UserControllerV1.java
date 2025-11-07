@@ -7,6 +7,7 @@ import com.sparta.user_service.domain.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import com.sparta.user_service.presentation.dto.response.UserApprovalResponse;
 import com.sparta.user_service.presentation.dto.response.UserCreateResponse;
+import com.sparta.user_service.presentation.dto.response.UserRoleChangeResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,16 @@ public class UserControllerV1 {
     ){
         UserEntity updatedUser = userServiceV1.changeStatus(userId, status);
         UserApprovalResponse response = UserApprovalResponse.of(updatedUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{userId}/role")
+    public ResponseEntity<UserRoleChangeResponse> changeRole(
+            @PathVariable UUID userId,
+            @RequestParam UserRoleEnum role
+    ){
+        UserEntity updatedUser = userServiceV1.changeRole(userId, role);
+        UserRoleChangeResponse response = UserRoleChangeResponse.of(updatedUser);
         return ResponseEntity.ok(response);
     }
 }
