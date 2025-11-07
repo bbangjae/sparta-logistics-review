@@ -30,7 +30,7 @@ import static com.example.sparta.order_service.domain.entity.QOrder.order;
 // TODO 권한에 따른 verify 절차 이후 조회 로직 변경 필요
 @Repository
 @RequiredArgsConstructor
-public class OrderQueryRepositoryImpl implements OrderQueryRepository {
+public class OrderRepositoryImpl implements OrderQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
@@ -63,7 +63,8 @@ public class OrderQueryRepositoryImpl implements OrderQueryRepository {
 //                        userEmailEq(userEmail),
                         statusEq(condition.state()),
                         orderDateBetween(condition.startDate(), condition.endDate()),
-                        searchByKeyword(condition.searchType(), condition.keyword())
+                        searchByKeyword(condition.searchType(), condition.keyword()),
+                        order.deletedAt.isNull()
                 )
                 .orderBy(getSortOrderSpecifiers(pageable.getSort()))
                 .offset(pageable.getOffset())
@@ -77,7 +78,8 @@ public class OrderQueryRepositoryImpl implements OrderQueryRepository {
 //                        userEmailEq(userEmail),
                         statusEq(condition.state()),
                         orderDateBetween(condition.startDate(), condition.endDate()),
-                        searchByKeyword(condition.searchType(), condition.keyword())
+                        searchByKeyword(condition.searchType(), condition.keyword()),
+                        order.deletedAt.isNull()
                 );
         Long total = countQuery.fetchOne();
         if (total == null)

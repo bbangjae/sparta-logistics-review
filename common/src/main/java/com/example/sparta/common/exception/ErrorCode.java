@@ -40,6 +40,7 @@ public enum ErrorCode {
     
     // Order 관련 에러 (5000번대)
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORD001", "주문을 찾을 수 없습니다."),
+    ORDER_MODIFICATION_NOT_ALLOWED(HttpStatus.CONFLICT, "ORD002", "주문 수정이 불가능한 상태입니다."),
     
     // User 관련 에러 (6000번대)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USR001", "사용자를 찾을 수 없습니다."),
