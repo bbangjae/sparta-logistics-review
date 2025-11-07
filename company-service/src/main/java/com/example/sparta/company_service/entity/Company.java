@@ -56,4 +56,31 @@ public class Company extends BaseEntity {
         ACTIVE, INACTIVE, DELETED
     }
     
+    /**
+     * 업체명을 수정합니다.
+     * 
+     * @param name 새로운 업체명
+     */
+    public void updateName(String name) {
+        this.name = name;
+    }
+    
+    /**
+     * 업체 주소를 수정합니다.
+     * 
+     * @param address 새로운 주소
+     */
+    public void updateAddress(String address) {
+        this.address = address;
+    }
+    
+    /**
+     * 업체를 논리적으로 삭제합니다.
+     * 
+     * 실제 데이터는 유지하며 상태를 INACTIVE로 변경합니다.
+     * BaseEntity의 deleted_at, deleted_by 필드가 자동으로 설정됩니다.
+     */
+    public void softDelete() {
+        this.status = CompanyStatus.INACTIVE;
+    }
 }

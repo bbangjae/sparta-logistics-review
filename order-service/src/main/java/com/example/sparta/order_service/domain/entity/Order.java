@@ -26,6 +26,10 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID orderId;
     @Column(nullable = false)
+    private UUID deliveryId;
+    @Column(nullable = false)
+    private UUID hubId;
+    @Column(nullable = false)
     private String userEmail;
     @Column(nullable = false)
     private Long totalAmount;

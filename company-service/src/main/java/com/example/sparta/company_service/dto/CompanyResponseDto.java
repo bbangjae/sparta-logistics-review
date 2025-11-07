@@ -58,6 +58,21 @@ public class CompanyResponseDto {
     private LocalDateTime created_at;
     
     /**
+     * 생성자 ID
+     */
+    private Long created_by;
+    
+    /**
+     * 수정일시
+     */
+    private LocalDateTime updated_at;
+    
+    /**
+     * 수정자 ID
+     */
+    private Long updated_by;
+    
+    /**
      * Entity를 DTO로 변환하는 정적 팩토리 메서드
      * 
      * 도메인 모델을 API 응답 형식으로 변환하며,
@@ -75,6 +90,9 @@ public class CompanyResponseDto {
                 .address(company.getAddress())
                 .status(company.getStatus().name())
                 .created_at(company.getCreatedAt())
+                .created_by(company.getCreatedBy())
+                .updated_at(company.getUpdatedAt())
+                .updated_by(company.getUpdatedBy())
                 .build();
     }
     
