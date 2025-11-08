@@ -33,7 +33,7 @@ public class UserCreateRequest {
     )
     private String password;
 
-    @NotBlank
+    @NotBlank(message = "Slack ID를 입력해주세요.")
     private String slackId;
 
     private UserStatusEnum status;
