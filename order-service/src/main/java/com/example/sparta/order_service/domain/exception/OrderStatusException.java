@@ -1,4 +1,4 @@
-package com.example.sparta.order_service.application.exception;
+package com.example.sparta.order_service.domain.exception;
 
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;

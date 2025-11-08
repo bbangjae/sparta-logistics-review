@@ -1,4 +1,4 @@
-package com.example.sparta.order_service.domain.dto;
+package com.example.sparta.order_service.application.dto;
 
 import com.example.sparta.order_service.domain.entity.ShippingInfo;
 

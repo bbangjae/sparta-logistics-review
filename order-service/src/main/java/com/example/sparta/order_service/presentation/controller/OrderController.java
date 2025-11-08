@@ -1,7 +1,7 @@
 package com.example.sparta.order_service.presentation.controller;
 
 import com.example.sparta.order_service.application.service.OrderQueryService;
-import com.example.sparta.order_service.application.service.OrderService;
+import com.example.sparta.order_service.application.service.OrderCommandService;
 import com.example.sparta.order_service.presentation.dto.request.OrderRequest;
 import com.example.sparta.order_service.presentation.dto.request.OrderUpdateRequest;
 import com.example.sparta.order_service.presentation.dto.request.SearchCondition;
@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequestMapping("/v1/orders")
 @RequiredArgsConstructor
 public class OrderController {
-    private final OrderService commandService;
+    private final OrderCommandService commandService;
     private final OrderQueryService queryService;
 
     // TODO Principal 객체를 받아서 userEmail 할당해주기
@@ -29,8 +29,9 @@ public class OrderController {
     // TODO 배송 서비스 호출
     @PostMapping
     public ResponseEntity<OrderCreateResponse> create(@RequestBody OrderRequest request) {
+        String userEmail = "tempUserEmail";
         return ResponseEntity.created(URI.create("temp"))
-                .body(commandService.create(request));
+                .body(commandService.create(request, userEmail));
     }
 
     @GetMapping

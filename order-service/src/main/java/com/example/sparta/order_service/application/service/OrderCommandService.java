@@ -2,7 +2,8 @@ package com.example.sparta.order_service.application.service;
 
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
-import com.example.sparta.order_service.application.exception.OrderStatusException;
+import com.example.sparta.order_service.application.dto.request.DeliveryCreateRequest;
+import com.example.sparta.order_service.domain.exception.OrderStatusException;
 import com.example.sparta.order_service.domain.entity.Order;
 import com.example.sparta.order_service.domain.repository.OrderRepository;
 import com.example.sparta.order_service.presentation.dto.request.OrderRequest;
@@ -10,6 +11,7 @@ import com.example.sparta.order_service.presentation.dto.request.OrderUpdateRequ
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
 import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +19,20 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class OrderService {
+public class OrderCommandService {
     private final OrderRepository orderRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // TODO 주문 생성 시 배송 아이디, 허브 아이디 할당
     @Transactional
-    public OrderCreateResponse create(OrderRequest request) {
+    public OrderCreateResponse create(OrderRequest request, String userEmail) {
         Order order = request.toEntity();
-        order.setUserEmailToCreate("tempUserEmail");
-        return orderRepository.save(order).toCreateResponse();
+        order.setUserEmailToCreate(userEmail);
+        Order savedOrder = orderRepository.save(order);
+
+        eventPublisher.publishEvent(savedOrder.toEvent());
+
+        return savedOrder.toCreateResponse();
     }
 
     @Transactional
