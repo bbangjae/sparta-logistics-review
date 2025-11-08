@@ -20,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/orders")
 @RequiredArgsConstructor
+// TODO GlobalExceptionHandler 구현
 public class OrderController {
     private final OrderCommandService commandService;
     private final OrderQueryService queryService;
