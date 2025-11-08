@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -22,7 +23,6 @@ import java.util.UUID;
 public class UserServiceV1 {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
 
     public UserCreateResponse create(UserCreateRequest signupRequest){
         String username = signupRequest.getUsername();
@@ -37,19 +37,31 @@ public class UserServiceV1 {
         return UserCreateResponse.of(savedUser);
     }
 
+    @Transactional
+
     public UserEntity changeStatus(UUID userId, UserStatusEnum status) {
+
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+        if (user.getStatus() == status) {
+            throw new BusinessException(ErrorCode.INVALID_STATUS_CHANGE, status.name());
+        }
+
         user.changeStatus(status);
-        return userRepository.save(user);
+        return user;
     }
 
+    @Transactional
     public UserEntity changeRole(UUID userId, UserRoleEnum role) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() ->  new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        user.changeRole(role);   // ← 도메인 메서드 호출
-        return userRepository.save(user);
+        if (user.getRole() == role) {
+            throw new BusinessException(ErrorCode.INVALID_ROLE_CHANGE, role.name());
+        }
+
+        user.changeRole(role);
+        return user;
     }
 }

@@ -1,4 +1,4 @@
-package com.sparta.user_service.presentation.dto.response;
+package com.sparta.user_service.presentation.response;
 
 import com.sparta.user_service.domain.entity.UserEntity;
 import com.sparta.user_service.domain.enums.UserRoleEnum;
