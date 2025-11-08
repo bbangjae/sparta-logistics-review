@@ -1,0 +1,24 @@
+server:
+  port: ${USER_SERVICE_PORT}
+
+spring:
+  application:
+    name: user-service
+  profiles:
+    active: local
+  config:
+    import: optional:configserver:http://localhost:8888
+  datasource:
+    url: ${USER_DB_URL}
+    username: ${USER_DB_USERNAME}
+    password: ${USER_DB_PASSWORD}
+    jpa:
+      hibernate:
+        ddl-auto: update
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE}
+
+message: "default message"
