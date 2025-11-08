@@ -10,6 +10,9 @@ import com.sparta.deliveryservice.domain.DeliveryRouteHistory;
 import com.sparta.deliveryservice.domain.dto.request.DeliveryCreateRequest;
 import com.sparta.deliveryservice.domain.enums.DeliveryStatus;
 import com.sparta.deliveryservice.domain.enums.RouteStatus;
+import com.sparta.deliveryservice.producer.DeliveryEventProducer;
+import com.sparta.deliveryservice.producer.RabbitMQProducer;
+import com.sparta.deliveryservice.producer.dto.DeliveryCompletedEvent;
 import com.sparta.deliveryservice.repository.DeliveryRepository;
 import com.sparta.deliveryservice.repository.DeliveryRouteHistoryRepository;
 import feign.FeignException;
@@ -42,7 +45,7 @@ public class DeliveryServiceTest {
     private DeliveryService deliveryService; // 아직 존재하지 않음
 
     // Mock
-    // 실제 DB나 외부 API가 아닌, 가짜 객체를 마듭니다.
+    // 실제 DB나 외부 API가 아닌, 가짜 객체를 만듭니다.
 
     @Mock
     private DeliveryRepository deliveryRepository;
@@ -55,6 +58,11 @@ public class DeliveryServiceTest {
 
     @Mock
     private AiServiceClient aiServiceClient; // 아직 존재하지 않음
+
+//    @Mock
+//    private DeliveryEventProducer deliveryEventProducer; // 이벤트 발행기 Mock
+    @Mock
+    private RabbitMQProducer rabbitMQProducer;
 
     @Test
     @DisplayName("[RED] Flow 1: 배송 생성 시 'AI 서비스'가 실패하면, DB 저장은 절대 일어나지 않아야 한다 (롤백)")
@@ -340,6 +348,87 @@ public class DeliveryServiceTest {
 
         // 6. [중요] 예외가 발생했으므로, 'save'는 절대 호출되지 않았어야 함
         verify(deliveryRepository, never()).save(any(Delivery.class));
+    }
+
+    // -----------------------------------------------------------------
+    // [TDD] Flow 3-3: completeDelivery (최종 배송 완료)
+    // -----------------------------------------------------------------
+
+    @Test
+    @DisplayName("[RED] Flow 3-3 (성공): '업체 이동중'인 배송을 '완료'하면, 상태가 COMPLETED로 변경되고 이벤트가 발행된다")
+    void completeDelivery_SuccessScenario_ShouldChangeStatusToCompletedAndPublishEvent() {
+
+        // --- Given (준비) ---
+        UUID deliveryId = UUID.randomUUID();
+        UUID orderId = UUID.randomUUID();
+
+        // 2. [핵심] '가짜' 배송(Delivery) 데이터
+        Delivery fakeDeliveryingDelivery = Delivery.builder()
+                .orderId(orderId)
+                .status(DeliveryStatus.COMPANY_DELIVERING) // '업체 이동중' 상태
+                .companyDriverId(UUID.randomUUID()) // 담당자 배정됨
+                .build();
+
+        // 3. Repository가 이 가짜 데이터를 반환하도록 설정
+        when(deliveryRepository.findById(deliveryId))
+                .thenReturn(Optional.of(fakeDeliveryingDelivery));
+
+        // 4. 저장될 객체(Delivery)를 갭처할 Captor 준비
+        ArgumentCaptor<Delivery> deliveryCaptor = ArgumentCaptor.forClass(Delivery.class);
+        // 5. 발행될 이벤트(Event)를 캡처할 Captor 준비
+        ArgumentCaptor<DeliveryCompletedEvent> eventCaptor = ArgumentCaptor.forClass(DeliveryCompletedEvent.class);
+
+        // --- When (실행) ---
+        // 6. 'completeDelivery' 메서드 실행
+        deliveryService.completeDelivery(deliveryId);
+
+        // --- Then (검증) ---
+        // 7. 'save'가 1번 호출되었는지 검증
+        verify(deliveryRepository, times(1)).save(deliveryCaptor.capture());
+
+        // 8. 'sendDeliveryCompletedEvent'가 1번 호출되었는지 검증
+        verify(rabbitMQProducer, times(1)).sendDeliveryCompletedEvent(eventCaptor.capture());
+
+        // 9. 저장된 Delivery 객체의 상태 검증
+        Delivery savedDelivery = deliveryCaptor.getValue();
+        assertEquals(DeliveryStatus.COMPLETED, savedDelivery.getStatus(), "상태가 'COMPLETE'(배송 완료)로 변경되어야 합니다.");
+
+        // 10. 발행된 Event 객체의 데이터 검증
+        DeliveryCompletedEvent publishedEvent = eventCaptor.getValue();
+        assertEquals(orderId, publishedEvent.getOrderId(), "이벤트에 올바른 orderId가 포함되어야 합니다.");
+    }
+
+    @Test
+    @DisplayName("[RED] Flow 3-3 (실패): '최종 허브 도착' 상태인 배송을 (시작도 안하고) '완료'하려 하면, IllegalStateException이 발생한다")
+    void completeDelivery_FailsWhen_StatusIsNotCompanyDelivering() {
+
+        // --- Given (준비) ---
+        UUID deliveryId = UUID.randomUUID();
+
+        // 2. [핵심] '가짜' 배송(Delivery) 데이터
+        Delivery fakeArrivedDelivery = Delivery.builder()
+                .status(DeliveryStatus.ARRIVED_AT_DEST_HUB) // 아직 '업체 이동중'이 아님
+                .companyDriverId(UUID.randomUUID())
+                .build();
+
+        // 3. Repository가 이 가짜 데이터를 반환하도록 설정
+        when(deliveryRepository.findById(deliveryId))
+                .thenReturn(Optional.of(fakeArrivedDelivery));
+
+        // --- When (실행) & Then (검증) ---
+        // 4. 'completeDelivery' 메서드 실행 시 'IllegalStateException'이 발생하는지 검증
+        Exception exception = assertThrows(IllegalStateException.class, () -> {
+            deliveryService.completeDelivery(deliveryId);
+        });
+
+        // 5. 예외 메시지 검증
+        assertEquals("현재 '업체 이동중(COMPANY_DELIVERING)' 상태인 배송만 완료할 수 있습니다.", exception.getMessage());
+
+        // 6. [중요] 예외가 발생했으므로 'save'와 'sendEvent'는 절대 호출되지 않았어야 함
+        verify(deliveryRepository, never()).save(any(Delivery.class));
+        verify(rabbitMQProducer, never()).sendDeliveryCompletedEvent(any(DeliveryCompletedEvent.class));
+
+
     }
 }
 

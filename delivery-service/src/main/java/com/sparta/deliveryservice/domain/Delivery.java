@@ -9,6 +9,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,10 @@ public class Delivery extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "delivery", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DeliveryRouteHistory> routeHistories = new ArrayList<>();
+
+    // 실제 배송 완료 시간을 기록하기 위한 필드 추가
+    @Column(name = "actual_delivery_time", nullable = true)
+    private LocalDateTime actualDeliveryTime;
 
     // REFACTOR 생성 로직을 엔티티 내부로 이동
     public static Delivery createDelivery(DeliveryCreateRequest request,
@@ -145,6 +150,21 @@ public class Delivery extends BaseEntity {
 
         // 3. [TDD 검증] '성공' 테스트를 통과시키기 위한 상태 변경
         this.status = DeliveryStatus.COMPANY_DELIVERING;
+    }
+
+    /**
+     * [GREEN] Flow 3-3: 최종 배송을 완료합니다.
+     */
+    public void completeDelivery() {
+
+        // 1. TDD 검증. '상태 불 일치 실패' 테스트를 통과시키기 위한 규칙
+        if (this.status != DeliveryStatus.COMPANY_DELIVERING) {
+            throw new IllegalStateException("현재 '업체 이동중(COMPANY_DELIVERING)' 상태인 배송만 완료할 수 있습니다.");
+        }
+
+        // 2. TDD 검증. '성공' 테스트를 통과시키기 위한 상태 변경
+        this.status = DeliveryStatus.COMPLETED;
+        this.actualDeliveryTime = LocalDateTime.now(); // 실제 완료 시간 기록
     }
 }
 

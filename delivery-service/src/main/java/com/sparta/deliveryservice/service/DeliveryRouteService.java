@@ -56,7 +56,7 @@ public class DeliveryRouteService {
     }
 
     /**
-     * TDD Flow2-3: 허브 도착(아직 뼈대만 있음)
+     * TDD Flow 2-3: 허브 도착
      */
     @Transactional
     public void completeRoute(UUID routeHistoryId, Double actualDistance, Integer actualDuration) {
