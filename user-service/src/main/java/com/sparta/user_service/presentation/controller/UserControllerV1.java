@@ -69,4 +69,13 @@ public class UserControllerV1 {
         Page<UserSearchResponse> page = userServiceV1.searchUsers(name, slackId, role, status, pageable);
         return ResponseEntity.ok(assembler.toModel(page));
     }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable UUID userId,
+            @RequestParam(required = false) Long deletedBy // 삭제 요청자 ID (옵션)
+    ) {
+        userServiceV1.deleteUser(userId, deletedBy);
+        return ResponseEntity.noContent().build(); // 204 No Content
+    }
 }

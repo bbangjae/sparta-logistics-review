@@ -83,4 +83,16 @@ public class UserServiceV1 {
 
         return userRepository.searchUsers(name, slackId, role, status, pageable);
     }
+
+    @Transactional
+    public void deleteUser(UUID userId, Long deletedBy) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.isDeleted()) {
+            throw new BusinessException(ErrorCode.ALREADY_DELETED_USER);
+        }
+
+        user.delete(deletedBy);
+    }
 }
