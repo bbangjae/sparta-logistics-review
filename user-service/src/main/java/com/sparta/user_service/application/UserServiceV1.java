@@ -8,12 +8,14 @@ import com.sparta.user_service.domain.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import com.sparta.user_service.domain.repository.UserRepository;
 import com.sparta.user_service.presentation.response.UserCreateResponse;
+import com.sparta.user_service.presentation.response.UserSearchResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
@@ -63,5 +65,22 @@ public class UserServiceV1 {
 
         user.changeRole(role);
         return user;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserSearchResponse> searchUsers(
+            String name,
+            String slackId,
+            UserRoleEnum role,
+            UserStatusEnum status,
+            Pageable pageable
+    ) {
+        int pageSize = Math.min(pageable.getPageSize(), 50);
+        if (pageSize != 10 && pageSize != 30 && pageSize != 50) {
+            pageSize = 10;
+        }
+        pageable = PageRequest.of(pageable.getPageNumber(), pageSize, pageable.getSort());
+
+        return userRepository.searchUsers(name, slackId, role, status, pageable);
     }
 }
