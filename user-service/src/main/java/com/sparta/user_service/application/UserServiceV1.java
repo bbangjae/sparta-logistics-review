@@ -1,13 +1,13 @@
 package com.sparta.user_service.application;
 
-import com.sparta.user_service.application.dto.request.UserCreateRequest;
-import com.sparta.user_service.application.exception.DuplicateUserException;
-import com.sparta.user_service.application.exception.ErrorCode;
+import com.example.sparta.common.exception.BusinessException;
+import com.example.sparta.common.exception.ErrorCode;
+import com.sparta.user_service.presentation.request.UserCreateRequest;
 import com.sparta.user_service.domain.entity.UserEntity;
 import com.sparta.user_service.domain.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import com.sparta.user_service.domain.repository.UserRepository;
-import com.sparta.user_service.presentation.dto.response.UserCreateResponse;
+import com.sparta.user_service.presentation.response.UserCreateResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,18 +28,12 @@ public class UserServiceV1 {
     public UserCreateResponse create(UserCreateRequest signupRequest){
         String username = signupRequest.getUsername();
         if(userRepository.findByUsername(username).isPresent()){
-            throw new DuplicateUserException(ErrorCode.DUPLICATE_USER);
+            throw new BusinessException(ErrorCode.DUPLICATED_USER);
         }
 
-        log.info("raw password: {}", signupRequest.getPassword());
         String hashedPassword = passwordEncoder.encode(signupRequest.getPassword());
-        log.info("encoded password: {}", hashedPassword);
-
         UserEntity user = UserEntity.create(signupRequest, hashedPassword);
-        log.info("user.getPassword() after create(): {}", user.getPassword());
-
         UserEntity savedUser = userRepository.save(user);
-        log.info("user.getPassword() after save(): {}", savedUser.getPassword());
 
         return UserCreateResponse.of(savedUser);
     }
