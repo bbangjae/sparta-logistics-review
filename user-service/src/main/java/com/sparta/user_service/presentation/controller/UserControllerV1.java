@@ -1,13 +1,12 @@
 package com.sparta.user_service.presentation.controller;
 
 import com.sparta.user_service.application.UserServiceV1;
-import com.sparta.user_service.application.dto.request.UserCreateRequest;
 import com.sparta.user_service.domain.entity.UserEntity;
 import com.sparta.user_service.domain.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
-import com.sparta.user_service.presentation.dto.response.UserApprovalResponse;
-import com.sparta.user_service.presentation.dto.response.UserCreateResponse;
-import com.sparta.user_service.presentation.dto.response.UserRoleChangeResponse;
+import com.sparta.user_service.presentation.request.UserCreateRequest;
+import com.sparta.user_service.presentation.response.UserApprovalResponse;
+import com.sparta.user_service.presentation.response.UserCreateResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,12 +42,12 @@ public class UserControllerV1 {
     }
 
     @PatchMapping("/{userId}/role")
-    public ResponseEntity<UserRoleChangeResponse> changeRole(
+    public ResponseEntity<com.sparta.user_service.presentation.dto.response.UserRoleChangeResponse> changeRole(
             @PathVariable UUID userId,
             @RequestParam UserRoleEnum role
     ){
         UserEntity updatedUser = userServiceV1.changeRole(userId, role);
-        UserRoleChangeResponse response = UserRoleChangeResponse.of(updatedUser);
+        com.sparta.user_service.presentation.dto.response.UserRoleChangeResponse response = com.sparta.user_service.presentation.dto.response.UserRoleChangeResponse.of(updatedUser);
         return ResponseEntity.ok(response);
     }
 }

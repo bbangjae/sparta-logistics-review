@@ -1,5 +1,7 @@
 package com.sparta.user_service.domain.entity;
 
+import com.example.sparta.common.exception.BusinessException;
+import com.example.sparta.common.exception.ErrorCode;
 import com.example.sparta.common.model.BaseEntity;
 import com.sparta.user_service.presentation.request.UserCreateRequest;
 import com.sparta.user_service.domain.enums.UserRoleEnum;
@@ -20,9 +22,15 @@ import java.util.UUID;
 @Builder
 public class UserEntity extends BaseEntity {
     @Id
-    @GeneratedValue
     @Column(name = "user_id", updatable = false, nullable = false)
     private UUID userId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.userId == null) {
+            this.userId = UUID.randomUUID();
+        }
+    }
 
     @Column()
     @Enumerated(value = EnumType.STRING)
@@ -56,6 +64,9 @@ public class UserEntity extends BaseEntity {
     }
 
     public void changeStatus(UserStatusEnum status) {
+        if (status == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
         this.status = status;
     }
 

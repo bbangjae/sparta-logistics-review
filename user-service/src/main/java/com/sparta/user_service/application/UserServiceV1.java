@@ -23,7 +23,6 @@ public class UserServiceV1 {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private static final Logger log = LoggerFactory.getLogger(UserServiceV1.class);
 
     public UserCreateResponse create(UserCreateRequest signupRequest){
         String username = signupRequest.getUsername();
@@ -40,9 +39,9 @@ public class UserServiceV1 {
 
     public UserEntity changeStatus(UUID userId, UserStatusEnum status) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        user.changeStatus(status);  // ← 단일 메서드 호출
+        user.changeStatus(status);
         return userRepository.save(user);
     }
 
