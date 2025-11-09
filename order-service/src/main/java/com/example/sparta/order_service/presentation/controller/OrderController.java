@@ -26,7 +26,6 @@ public class OrderController {
     private final OrderQueryService queryService;
 
     // TODO Principal 객체를 받아서 userEmail 할당해주기
-    // TODO AuditingAware 클래스 구현 및 createdBy 자동 주입 구현하기
     @PostMapping
     public ResponseEntity<OrderCreateResponse> create(@RequestBody OrderRequest request) {
         String userEmail = "tempUserEmail";
