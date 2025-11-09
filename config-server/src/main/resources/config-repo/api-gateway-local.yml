@@ -26,6 +26,10 @@ spring:
             - Path=/v1/auth/**
             - Path=/v1/users/**
 
+jwt:
+  secret: "my-super-secret-key-my-super-secret-key-1234"
+  expiration: 3600000
+
 management:
   endpoints:
     web:

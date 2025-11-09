@@ -4,11 +4,10 @@ import com.example.sparta.api_gateway.dto.LoginRequest;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.security.Key;
 import java.util.Date;
@@ -16,11 +15,18 @@ import java.util.Date;
 @Service
 public class AuthService {
 
-    private static final String SECRET_KEY_STRING = "my-super-secret-key-my-super-secret-key-1234";
-    private static final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
-    private static final long EXPIRATION_MS = 1000 * 60 * 60; // 1시간 // 1시간
+    @Value("${jwt.secret}")
+    private String secretKeyString;
+
+    @Value("${jwt.expiration}")
+    private long expirationMs;
 
     private final WebClient webClient = WebClient.create("http://localhost:9006");
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(secretKeyString.getBytes());
+    }
+
     // user-service에 로그인 요청하고 결과(boolean) 받음
     public Mono<Boolean> validateUser(LoginRequest request) {
         return webClient.post()
@@ -36,14 +42,14 @@ public class AuthService {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
+                .signWith(SignatureAlgorithm.HS256, getSigningKey())
                 .compact();
     }
 
     public String validateTokenAndGetUsername(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(getSigningKey())
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
