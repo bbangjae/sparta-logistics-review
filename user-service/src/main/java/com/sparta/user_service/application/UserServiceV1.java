@@ -47,7 +47,7 @@ public class UserServiceV1 {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (user.getStatus() == status) {
-            throw new BusinessException(ErrorCode.INVALID_STATUS_CHANGE, status.name());
+            throw new BusinessException(ErrorCode.INVALID_STATUS_CHANGE);
         }
 
         user.changeStatus(status);
@@ -60,7 +60,7 @@ public class UserServiceV1 {
                 .orElseThrow(() ->  new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (user.getRole() == role) {
-            throw new BusinessException(ErrorCode.INVALID_ROLE_CHANGE, role.name());
+            throw new BusinessException(ErrorCode.INVALID_ROLE_CHANGE);
         }
 
         user.changeRole(role);
