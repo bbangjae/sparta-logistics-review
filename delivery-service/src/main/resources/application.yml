@@ -1,0 +1,53 @@
+server:
+  port: 8088 # 배송 서비스 포트
+
+spring:
+  application:
+    name: delivery-server # 유레카에 등록될 이름
+
+  # ==========================================
+  # 1. PostgreSQL (실제 DB) 연결 설정
+  # ==========================================
+  datasource:
+    # Docker 내부 네트워크에서는 'localhost' 대신 '컨테이너 이름'을 사용합니다.
+    url: jdbc:postgresql://postgres-db:5432/delivery_db # (postgres-db 컨테이너의 5432 포트)
+    username: your_postgres_user # (docker-compose에서 설정할 유저명)
+    password: your_postgres_password # (docker-compose에서 설정할 비밀번호)
+    driver-class-name: org.postgresql.Driver
+
+  # ==========================================
+  # 2. JPA 및 Hibernate 설정
+  # ==========================================
+  jpa:
+    hibernate:
+      # [중요] 'create'나 'create-drop' 대신 'validate' 또는 'update' 사용
+      # update: 엔티티 변경 사항을 DB에 반영 (운영에서는 validate 권장)
+      ddl-auto: update
+    properties:
+      hibernate:
+        # PostgreSQL 방언(Dialect) 설정
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # (JPA가 생성하는 SQL을 보기 쉽게 포맷팅)
+        format_sql: true
+    show-sql: true # (로그에 JPA가 실행하는 SQL문 출력)
+
+  # ==========================================
+  # 3. RabbitMQ (이벤트 브로커) 연결 설정
+  # ==========================================
+  rabbitmq:
+    # Docker 내부 네트워크에서는 'localhost' 대신 '컨테이너 이름'을 사용합니다.
+    host: rabbitmq-server
+    port: 5672 # RabbitMQ 기본 포트
+    username: your_rabbitmq_user # (docker-compose에서 설정할 유저명)
+    password: your_rabbitmq_password # (docker-compose에서 설정할 비밀번호)
+
+# ==========================================
+# 4. Eureka Client 설정 (기존과 동일)
+# ==========================================
+eureka:
+  client:
+    service-url:
+      # Docker 내부 네트워크에서는 'localhost' 대신 '컨테이너 이름'을 사용합니다.
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${random.value}

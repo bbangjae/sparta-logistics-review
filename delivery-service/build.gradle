@@ -34,7 +34,11 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.h2database:h2'
+	// (기존 H2 의존성은 testImplementation으로 변경하거나 삭제)
+	// runtimeOnly 'com.h2database:h2' // ⬅️ (주석 처리 또는 삭제)
+	testImplementation 'com.h2database:h2' // ⬅️ (테스트 시에만 H2 사용)
+	// [추가] PostgreSQL 드라이버
+	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
