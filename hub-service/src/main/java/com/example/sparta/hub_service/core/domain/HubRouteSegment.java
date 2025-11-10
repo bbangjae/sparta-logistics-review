@@ -1,14 +1,14 @@
 package com.example.sparta.hub_service.core.domain;
 
 import com.example.sparta.common.model.BaseEntity;
-import com.example.sparta.hub_service.core.vo.HubConnectionId;
-import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -26,19 +26,19 @@ public class HubRouteSegment extends BaseEntity {
     @Column(name = "route_segment_id", nullable = false, updatable = false)
     private UUID id;
 
-    @Embedded
-    @AttributeOverride(name = "id", column = @Column(name = "hub_connection_id", nullable = false))
-    private HubConnectionId hubConnectionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hub_connection_id", nullable = false)
+    private HubConnection hubConnection;
 
     @Column(name = "segment_sequence", nullable = false)
     private Integer segmentSequence;
 
     public static HubRouteSegment create(
-        HubConnectionId hubConnectionId,
+        HubConnection hubConnection,
         Integer segmentSequence
     ) {
         HubRouteSegment segment = new HubRouteSegment();
-        segment.hubConnectionId = hubConnectionId;
+        segment.hubConnection = hubConnection;
         segment.segmentSequence = segmentSequence;
         return segment;
     }
