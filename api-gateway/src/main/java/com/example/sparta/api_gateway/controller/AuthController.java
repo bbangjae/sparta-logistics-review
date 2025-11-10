@@ -21,23 +21,31 @@ public class AuthController {
     @PostMapping("/login")
     public Mono<ResponseEntity<JwtResponse>> login(@RequestBody LoginRequest request) {
         return authService.validateUser(request)
-                .flatMap(valid -> {
-                    if (valid) {
-                        String token = authService.generateToken(request.getUsername());
-                        return Mono.just(ResponseEntity.ok(new JwtResponse(token)));
-                    } else {
+                .flatMap(response -> {
+                    if (!response.isValid()) {
                         return Mono.error(new BusinessException(ErrorCode.INVALID_CREDENTIALS));
                     }
+
+                    String token = authService.generateToken(
+                            response.getUserId(),
+                            response.getUsername(),
+                            response.getRole()
+                    );
+
+                    return Mono.just(ResponseEntity.ok(new JwtResponse(
+                            token,
+                            response.getUserId(),
+                            response.getUsername(),
+                            response.getRole()
+                    )));
                 })
                 .onErrorResume(e -> {
-                    // WebClient 연결 문제나 404 예외 처리
-                    if (e instanceof WebClientResponseException.NotFound) {
+                    if (e instanceof BusinessException be) {
+                        return Mono.error(be);
+                    } else if (e instanceof WebClientResponseException.NotFound) {
                         return Mono.error(new BusinessException(ErrorCode.USER_NOT_FOUND));
-                    } else if (e instanceof BusinessException) {
-                        return Mono.error(e); // 그대로 통과
-                    } else {
-                        return Mono.error(new BusinessException(ErrorCode.SERVICE_UNAVAILABLE));
                     }
+                    return Mono.error(new BusinessException(ErrorCode.SERVICE_UNAVAILABLE));
                 });
     }
 

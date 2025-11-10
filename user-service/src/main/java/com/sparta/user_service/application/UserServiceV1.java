@@ -4,7 +4,7 @@ import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
 import com.sparta.user_service.presentation.request.UserCreateRequest;
 import com.sparta.user_service.domain.entity.UserEntity;
-import com.sparta.user_service.domain.enums.UserRoleEnum;
+import com.example.sparta.common.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import com.sparta.user_service.domain.repository.UserRepository;
 import com.sparta.user_service.presentation.response.UserCreateResponse;
