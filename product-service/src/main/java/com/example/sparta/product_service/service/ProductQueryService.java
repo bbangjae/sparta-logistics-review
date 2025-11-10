@@ -1,5 +1,7 @@
 package com.example.sparta.product_service.service;
 
+import com.example.sparta.product_service.dto.ProductCreateRequestDto;
+import com.example.sparta.product_service.dto.ProductCreateResponseDto;
 import com.example.sparta.product_service.dto.ProductResponseDto;
 import com.example.sparta.product_service.dto.ProductSearchCriteria;
 import org.springframework.data.domain.Page;
@@ -40,4 +42,16 @@ public interface ProductQueryService {
      * @throws com.example.sparta.product_service.exception.ProductNotFoundException 상품을 찾을 수 없는 경우
      */
     ProductResponseDto getProductById(UUID productId);
+    
+    /**
+     * 신규 상품 생성
+     * 
+     * 새로운 상품을 등록하며, 소속 업체와 허브의 존재 여부를 검증합니다.
+     * 상품명 중복도 검증합니다.
+     * 
+     * @param requestDto 상품 생성 요청 정보
+     * @return 생성된 상품 정보
+     * @throws com.example.sparta.common.exception.BusinessException 업체/허브가 존재하지 않거나 상품명이 중복되는 경우
+     */
+    ProductCreateResponseDto createProduct(ProductCreateRequestDto requestDto);
 }
