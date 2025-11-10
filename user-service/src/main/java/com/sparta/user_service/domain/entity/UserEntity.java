@@ -74,5 +74,13 @@ public class UserEntity extends BaseEntity {
         this.role = role;
     }
 
+    public void updateUserInfo(String name, String slackId) {
+        if (name != null && !name.isBlank()) {
+            this.name = name;
+        }
+        if (slackId != null && !slackId.isBlank()) {
+            this.slackId = slackId;
+        }
+    }
 }
 
