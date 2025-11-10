@@ -2,6 +2,7 @@ package com.example.sparta.product_service.service;
 
 import com.example.sparta.product_service.dto.ProductCreateRequestDto;
 import com.example.sparta.product_service.dto.ProductCreateResponseDto;
+import com.example.sparta.product_service.dto.ProductDeleteResponseDto;
 import com.example.sparta.product_service.dto.ProductResponseDto;
 import com.example.sparta.product_service.dto.ProductSearchCriteria;
 import com.example.sparta.product_service.dto.ProductUpdateRequestDto;
@@ -69,4 +70,16 @@ public interface ProductQueryService {
      * @throws com.example.sparta.product_service.exception.ProductNotFoundException 상품을 찾을 수 없는 경우
      */
     ProductUpdateResponseDto updateProduct(UUID productId, ProductUpdateRequestDto requestDto);
+    
+    /**
+     * 상품 논리 삭제
+     * 
+     * 상품을 논리적으로 삭제합니다.
+     * 실제 데이터는 유지하며 deleted_at, deleted_by 필드를 설정하고 상태를 INACTIVE로 변경합니다.
+     * 
+     * @param productId 삭제할 상품 ID
+     * @return 삭제된 상품 정보
+     * @throws com.example.sparta.product_service.exception.ProductNotFoundException 상품을 찾을 수 없는 경우
+     */
+    ProductDeleteResponseDto deleteProduct(UUID productId);
 }

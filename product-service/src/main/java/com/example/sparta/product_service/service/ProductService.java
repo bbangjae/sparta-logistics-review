@@ -4,6 +4,7 @@ import com.example.sparta.product_service.client.CompanyClient;
 import com.example.sparta.product_service.client.dto.CompanyResponseDto;
 import com.example.sparta.product_service.dto.ProductCreateRequestDto;
 import com.example.sparta.product_service.dto.ProductCreateResponseDto;
+import com.example.sparta.product_service.dto.ProductDeleteResponseDto;
 import com.example.sparta.product_service.dto.ProductResponseDto;
 import com.example.sparta.product_service.dto.ProductSearchCriteria;
 import com.example.sparta.product_service.dto.ProductUpdateRequestDto;
@@ -389,6 +390,59 @@ public class ProductService implements ProductQueryService {
         } catch (Exception e) {
             log.error("상품 정보 수정 중 오류 발생 - productId: {}, 오류: {}", productId, e.getMessage(), e);
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "상품 정보 수정 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    /**
+     * 상품을 논리적으로 삭제합니다.
+     * 
+     * 실제 데이터를 삭제하지 않고 deleted_at, deleted_by 필드를 설정하고
+     * 상태를 INACTIVE로 변경하여 논리적 삭제를 수행합니다.
+     * BaseEntity의 소프트 삭제 기능을 활용합니다.
+     * 
+     * @param productId 삭제할 상품 ID
+     * @return 삭제된 상품 정보
+     * @throws com.example.sparta.product_service.exception.ProductNotFoundException 상품을 찾을 수 없는 경우
+     * @throws BusinessException 이미 삭제된 상품이거나 기타 오류 발생 시
+     */
+    @Override
+    @Transactional
+    public ProductDeleteResponseDto deleteProduct(UUID productId) {
+        log.debug("상품 논리 삭제 요청 - productId: {}", productId);
+        
+        // 입력값 검증
+        if (productId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "상품 ID는 필수입니다.");
+        }
+        
+        try {
+            // 1. 상품 존재 여부 확인 (이미 삭제된 상품 제외)
+            Product product = productRepository.findById(productId)
+                    .filter(p -> p.getDeletedAt() == null) // 논리 삭제된 상품 제외
+                    .orElseThrow(() -> {
+                        log.warn("삭제할 상품을 찾을 수 없음 - productId: {}", productId);
+                        return new com.example.sparta.product_service.exception.ProductNotFoundException(productId);
+                    });
+            
+            // 2. 논리 삭제 수행
+            // BaseEntity의 소프트 삭제 기능을 활용하여 deleted_at, deleted_by 자동 설정
+            product.softDelete(); // 상태를 INACTIVE로 변경
+            
+            // 3. 변경사항 저장
+            Product deletedProduct = productRepository.save(product);
+            
+            log.info("상품 논리 삭제 완료 - productId: {}, name: {}, deletedAt: {}", 
+                    deletedProduct.getProductId(), deletedProduct.getName(), deletedProduct.getDeletedAt());
+            
+            // 4. 응답 DTO 변환 및 반환
+            return ProductDeleteResponseDto.from(deletedProduct);
+            
+        } catch (com.example.sparta.product_service.exception.ProductNotFoundException e) {
+            // ProductNotFoundException은 그대로 던짐
+            throw e;
+        } catch (Exception e) {
+            log.error("상품 논리 삭제 중 오류 발생 - productId: {}, 오류: {}", productId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "상품 삭제 중 오류가 발생했습니다.", e);
         }
     }
 }
