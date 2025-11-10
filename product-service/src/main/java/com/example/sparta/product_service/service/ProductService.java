@@ -6,6 +6,8 @@ import com.example.sparta.product_service.dto.ProductCreateRequestDto;
 import com.example.sparta.product_service.dto.ProductCreateResponseDto;
 import com.example.sparta.product_service.dto.ProductResponseDto;
 import com.example.sparta.product_service.dto.ProductSearchCriteria;
+import com.example.sparta.product_service.dto.ProductUpdateRequestDto;
+import com.example.sparta.product_service.dto.ProductUpdateResponseDto;
 import com.example.sparta.product_service.entity.Product;
 import com.example.sparta.product_service.repository.ProductRepository;
 import feign.FeignException;
@@ -298,6 +300,95 @@ public class ProductService implements ProductQueryService {
                      companyId, e.status(), e);
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, 
                     "업체 정보 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    /**
+     * 상품 정보를 수정합니다.
+     * 
+     * 기존 상품의 정보를 부분적으로 수정할 수 있으며,
+     * 상품명 중복 검증과 비즈니스 규칙을 적용합니다.
+     * 
+     * @param productId 수정할 상품 ID
+     * @param requestDto 수정할 상품 정보
+     * @return 수정된 상품 정보
+     * @throws com.example.sparta.product_service.exception.ProductNotFoundException 상품을 찾을 수 없는 경우
+     * @throws BusinessException 유효하지 않은 수정 요청이거나 상품명이 중복되는 경우
+     */
+    @Override
+    @Transactional
+    public ProductUpdateResponseDto updateProduct(UUID productId, ProductUpdateRequestDto requestDto) {
+        log.debug("상품 정보 수정 요청 - productId: {}, name: {}, status: {}", 
+                 productId, requestDto.getName(), requestDto.getStatus());
+        
+        // 입력값 검증
+        if (productId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "상품 ID는 필수입니다.");
+        }
+        
+        if (requestDto == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "수정할 상품 정보는 필수입니다.");
+        }
+        
+        requestDto.validate();
+        
+        // 수정할 필드가 있는지 확인
+        if (!requestDto.hasFieldsToUpdate()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "수정할 필드가 없습니다.");
+        }
+        
+        try {
+            // 1. 상품 존재 여부 확인
+            Product product = productRepository.findById(productId)
+                    .filter(p -> p.getDeletedAt() == null) // 논리 삭제된 상품 제외
+                    .orElseThrow(() -> {
+                        log.warn("수정할 상품을 찾을 수 없음 - productId: {}", productId);
+                        return new com.example.sparta.product_service.exception.ProductNotFoundException(productId);
+                    });
+            
+            // 2. 상품명 변경 시 중복 검증
+            if (requestDto.isNameToUpdate()) {
+                String newName = requestDto.getNormalizedName();
+                
+                // 현재 상품과 다른 이름인 경우에만 중복 검증
+                if (!newName.equals(product.getName())) {
+                    boolean nameExists = productRepository.existsByNameAndDeletedAtIsNull(newName);
+                    if (nameExists) {
+                        log.warn("상품명 중복 감지 - name: {}", newName);
+                        throw new BusinessException(ErrorCode.PRODUCT_ALREADY_EXISTS, 
+                                String.format("이미 존재하는 상품명입니다: %s", newName));
+                    }
+                }
+                
+                // 상품명 변경
+                product.updateName(newName);
+                log.debug("상품명 변경 - productId: {}, 기존: {}, 변경: {}", 
+                         productId, product.getName(), newName);
+            }
+            
+            // 3. 상품 상태 변경
+            if (requestDto.isStatusToUpdate()) {
+                Product.ProductStatus newStatus = requestDto.getParsedStatus();
+                product.updateStatus(newStatus);
+                log.debug("상품 상태 변경 - productId: {}, 변경: {}", productId, newStatus);
+            }
+            
+            // 4. 변경사항 저장
+            Product updatedProduct = productRepository.save(product);
+            
+            log.info("상품 정보 수정 완료 - productId: {}, name: {}, status: {}", 
+                    updatedProduct.getProductId(), updatedProduct.getName(), updatedProduct.getStatus());
+            
+            // 5. 응답 DTO 변환 및 반환
+            return ProductUpdateResponseDto.from(updatedProduct);
+            
+        } catch (com.example.sparta.product_service.exception.ProductNotFoundException e) {
+            throw e;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("상품 정보 수정 중 오류 발생 - productId: {}, 오류: {}", productId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "상품 정보 수정 중 오류가 발생했습니다.", e);
         }
     }
 }

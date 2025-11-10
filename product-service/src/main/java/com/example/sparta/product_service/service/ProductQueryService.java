@@ -4,6 +4,8 @@ import com.example.sparta.product_service.dto.ProductCreateRequestDto;
 import com.example.sparta.product_service.dto.ProductCreateResponseDto;
 import com.example.sparta.product_service.dto.ProductResponseDto;
 import com.example.sparta.product_service.dto.ProductSearchCriteria;
+import com.example.sparta.product_service.dto.ProductUpdateRequestDto;
+import com.example.sparta.product_service.dto.ProductUpdateResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -54,4 +56,17 @@ public interface ProductQueryService {
      * @throws com.example.sparta.common.exception.BusinessException 업체/허브가 존재하지 않거나 상품명이 중복되는 경우
      */
     ProductCreateResponseDto createProduct(ProductCreateRequestDto requestDto);
+    
+    /**
+     * 상품 정보 수정
+     * 
+     * 기존 상품의 정보를 수정합니다.
+     * 상품명과 상태를 부분적으로 수정할 수 있습니다.
+     * 
+     * @param productId 수정할 상품 ID
+     * @param requestDto 수정할 상품 정보
+     * @return 수정된 상품 정보
+     * @throws com.example.sparta.product_service.exception.ProductNotFoundException 상품을 찾을 수 없는 경우
+     */
+    ProductUpdateResponseDto updateProduct(UUID productId, ProductUpdateRequestDto requestDto);
 }
