@@ -8,6 +8,7 @@ import com.example.sparta.order_service.presentation.dto.request.SearchCondition
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
 import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import com.example.sparta.order_service.presentation.dto.response.OrderResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +28,7 @@ public class OrderController {
 
     // TODO Principal 객체를 받아서 userEmail 할당해주기
     @PostMapping
-    public ResponseEntity<OrderCreateResponse> create(@RequestBody OrderRequest request) {
+    public ResponseEntity<OrderCreateResponse> create(@RequestBody @Valid OrderRequest request) {
         String userEmail = "tempUserEmail";
         return ResponseEntity.created(URI.create("temp"))
                 .body(commandService.create(request, userEmail));
@@ -44,7 +45,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<OrderDetailResponse> update(@PathVariable UUID id, @RequestBody OrderUpdateRequest request) {
+    public ResponseEntity<OrderDetailResponse> update(@PathVariable UUID id, @RequestBody @Valid OrderUpdateRequest request) {
         return ResponseEntity.ok(commandService.update(id, request));
     }
 
