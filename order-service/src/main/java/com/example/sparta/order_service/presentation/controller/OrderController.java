@@ -8,6 +8,7 @@ import com.example.sparta.order_service.presentation.dto.request.SearchCondition
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
 import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import com.example.sparta.order_service.presentation.dto.response.OrderResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,10 +29,11 @@ public class OrderController {
 
     // TODO Principal 객체를 받아서 userEmail 할당해주기
     @PostMapping
-    public ResponseEntity<OrderCreateResponse> create(@RequestBody @Valid OrderRequest request) {
-        String userEmail = "tempUserEmail";
+    public ResponseEntity<OrderCreateResponse> create(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request) {
+        String username = request.getHeader("X-USERNAME");
+        String userRole = request.getHeader("X-USER-ROLE");
         return ResponseEntity.created(URI.create("temp"))
-                .body(commandService.create(request, userEmail));
+                .body(commandService.create(orderRequest, username, userRole));
     }
 
     @GetMapping
@@ -40,19 +42,23 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderDetailResponse> getOrderDetail(@PathVariable UUID id) {
-        return ResponseEntity.ok(queryService.findById(id));
+    public ResponseEntity<OrderDetailResponse> getOrderDetail(@PathVariable UUID id, HttpServletRequest request) {
+        String username = request.getHeader("X-USERNAME");
+        String userRole = request.getHeader("X-USER-ROLE");
+        return ResponseEntity.ok(queryService.findById(id, username, userRole));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<OrderDetailResponse> update(@PathVariable UUID id, @RequestBody @Valid OrderUpdateRequest request) {
-        return ResponseEntity.ok(commandService.update(id, request));
+    public ResponseEntity<OrderDetailResponse> update(@PathVariable UUID id, @RequestBody @Valid OrderUpdateRequest orderUpdateRequest, HttpServletRequest request) {
+        String userRole = request.getHeader("X-USER-ROLE");
+        return ResponseEntity.ok(commandService.update(id, orderUpdateRequest, userRole));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        Long tempUserId = 0L;
-        commandService.delete(id, tempUserId);
+    public ResponseEntity<Void> delete(@PathVariable UUID id, HttpServletRequest request) {
+        Long userId = Long.getLong(request.getHeader("X-USERID"));
+        String userRole = request.getHeader("X-USER-ROLE");
+        commandService.delete(id, userId, userRole);
         return ResponseEntity.noContent()
                 .location(URI.create("delete-temp-url"))
                 .build();

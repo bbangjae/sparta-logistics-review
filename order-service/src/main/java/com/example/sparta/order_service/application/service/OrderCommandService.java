@@ -28,7 +28,10 @@ public class OrderCommandService {
 
     // TODO 주문 생성 시 허브 아이디 할당
     @Transactional
-    public OrderCreateResponse create(OrderRequest request, String userEmail) {
+    public OrderCreateResponse create(OrderRequest request, String userEmail, String userRole) {
+        if(!(userRole.equals("MASTER") || userRole.equals("SUPPLIER_MANAGER")))
+            throw new BusinessException(ErrorCode.ORDER_CREATE_DENIED);
+
         Order order = request.toEntity();
         order.setUserEmailToCreate(userEmail);
         Order savedOrder = orderRepository.save(order);
@@ -55,7 +58,10 @@ public class OrderCommandService {
     }
 
     @Transactional
-    public OrderDetailResponse update(UUID id, OrderUpdateRequest request) {
+    public OrderDetailResponse update(UUID id, OrderUpdateRequest request, String userRole) {
+        if(!(userRole.equals("MASTER") || userRole.equals("HUB_MANAGER")))
+            throw new BusinessException(ErrorCode.ORDER_MODIFICATION_DENIED);
+
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND, "id와 일치하는 주문이 존재하지 않습니다. \n id: " + id));
 
@@ -68,12 +74,18 @@ public class OrderCommandService {
     }
 
     @Transactional
-    public void delete(UUID id, Long userId) {
+    public void delete(UUID id, Long userId, String userRole) {
+        if(!(userRole.equals("MASTER") || userRole.equals("HUB_MANAGER")))
+            throw new BusinessException(ErrorCode.ORDER_DELETE_DENIED);
+
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND, "id와 일치하는 주문이 존재하지 않습니다. \n id: " + id));
 
         if (order.isShipped())
-            throw new OrderStatusException(ErrorCode.ORDER_MODIFICATION_NOT_ALLOWED, "상품이 이미 출고되어 주문 변경이 불가합니다.");
+            throw new OrderStatusException(ErrorCode.ORDER_MODIFICATION_NOT_ALLOWED, "상품이 이미 출고되어 주문 삭제가 불가합니다.");
+
+        if(order.isDeleted())
+            throw new BusinessException(ErrorCode.ORDER_ALREADY_DELETED);
 
         order.delete(userId);
     }

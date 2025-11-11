@@ -41,10 +41,14 @@ public enum ErrorCode {
     // Order 관련 에러 (5000번대)
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORD001", "주문을 찾을 수 없습니다."),
     ORDER_MODIFICATION_NOT_ALLOWED(HttpStatus.CONFLICT, "ORD002", "주문 수정이 불가능한 상태입니다."),
-    ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORD003", "해당 주문에 접근할 권한이 없습니다."),
-    INVALID_SORT_PARAMETER(HttpStatus.BAD_REQUEST, "ORD004", "유효하지 않은 정렬 필드명입니다."),
-    ORDER_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ORD005", "주문 처리 중 알 수 없는 오류가 발생했습니다."),
-    ORDER_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ORD006", "주문 조회 중 쿼리 실행에 실패했습니다."),
+    ORDER_CREATE_DENIED(HttpStatus.FORBIDDEN, "ORD003", "주문을 생성할 권한이 없습니다."),
+    ORDER_MODIFICATION_DENIED(HttpStatus.FORBIDDEN, "ORD004", "주문을 수정할 권한이 없습니다."),
+    ORDER_DELETE_DENIED(HttpStatus.FORBIDDEN, "ORD005", "주문을 삭제할 권한이 없습니다."),
+    ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORD006", "해당 주문에 접근할 권한이 없습니다."),
+    ORDER_ALREADY_DELETED(HttpStatus.FORBIDDEN, "ORD007", "해당 주문에 접근할 권한이 없습니다."),
+    INVALID_SORT_PARAMETER(HttpStatus.BAD_REQUEST, "ORD008", "유효하지 않은 정렬 필드명입니다."),
+    ORDER_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ORD008", "주문 처리 중 알 수 없는 오류가 발생했습니다."),
+    ORDER_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ORD009", "주문 조회 중 쿼리 실행에 실패했습니다."),
 
     
     // User 관련 에러 (6000번대)

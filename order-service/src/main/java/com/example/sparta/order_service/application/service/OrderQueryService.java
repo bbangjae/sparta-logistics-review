@@ -28,7 +28,7 @@ public class OrderQueryService {
         return orderRepository.search(condition, userEmail, pageable);
     }
 
-    public OrderDetailResponse findById(UUID id) {
+    public OrderDetailResponse findById(UUID id, String userRole, String username) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND))
                 .toDetailResponse();

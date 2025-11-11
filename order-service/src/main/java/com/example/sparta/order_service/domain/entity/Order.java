@@ -28,8 +28,9 @@ public class Order extends BaseEntity {
     private UUID deliveryId;
     private UUID originHubId;
     private UUID destinationHubId;
+    private UUID currentHubId;
     @Column(nullable = false)
-    private String userEmail;
+    private String username;
     @Column(nullable = false)
     private Long totalAmount;
     @Enumerated(EnumType.STRING)
@@ -75,9 +76,9 @@ public class Order extends BaseEntity {
     private List<OrderHistory> orderHistories = new ArrayList<>();
 
     @Builder
-    public Order(UUID orderId, String userEmail, Long totalAmount, OrderStatus status, String deliveryMessage, Integer deliveryFee, LocalDateTime dueDate, String representativeProductName, int orderLineCount, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories) {
+    public Order(UUID orderId, String username, Long totalAmount, OrderStatus status, String deliveryMessage, Integer deliveryFee, LocalDateTime dueDate, String representativeProductName, int orderLineCount, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories) {
         this.orderId = orderId;
-        this.userEmail = userEmail;
+        this.username = username;
         this.totalAmount = totalAmount;
         this.status = status;
         this.deliveryMessage = deliveryMessage;
@@ -98,7 +99,7 @@ public class Order extends BaseEntity {
                 .deliveryMessage(deliveryMessage)
                 .totalAmount(totalAmount)
                 .orderDate(getCreatedAt())
-                .orderedBy(userEmail)
+                .orderedBy(username)
                 .state(status)
                 .originInfo(originInfo.toResponse())
                 .recipientInfo(recipientInfo.toResponse())
@@ -107,11 +108,11 @@ public class Order extends BaseEntity {
     }
 
     public void setUserEmailToCreate(String email) {
-        userEmail = email;
+        username = email;
     }
 
     public void update(OrderUpdateRequest request) {
-        userEmail = request.userEmail();
+        username = request.userEmail();
         status = request.status();
         deliveryMessage = request.deliveryMessage();
         dueDate = request.dueDate();
@@ -142,7 +143,7 @@ public class Order extends BaseEntity {
                 .deliveryMessage(deliveryMessage)
                 .totalAmount(totalAmount)
                 .orderDate(getCreatedAt())
-                .orderedBy(userEmail)
+                .orderedBy(username)
                 .state(status)
                 .originInfo(originInfo.toResponse())
                 .recipientInfo(recipientInfo.toResponse())
