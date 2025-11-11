@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.security.Key;
+import java.time.Duration;
 import java.util.Date;
 
 
@@ -70,6 +71,14 @@ public class AuthServiceV1 {
                             .build();
 
                     return Mono.just(response);
+                })
+                .timeout(Duration.ofSeconds(3))
+                .onErrorMap(throwable -> {
+                    if (throwable instanceof java.util.concurrent.TimeoutException) {
+                        return new BusinessException(ErrorCode.REQUEST_TIMEOUT);
+                    }
+                    return throwable;
                 });
+
     }
 }
