@@ -11,6 +11,8 @@ import java.util.List;
 public record OrderRequest(
         @NotNull
         String deliveryMessage,
+        // TODO slackId 저장 로직 고려
+        String slackId,
         @NotNull LocalDateTime dueDate,
         @NotNull ShippingInfoRequest originInfo,
         @NotNull ShippingInfoRequest recipientInfo,
