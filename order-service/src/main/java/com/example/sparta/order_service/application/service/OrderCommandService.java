@@ -2,8 +2,10 @@ package com.example.sparta.order_service.application.service;
 
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
+import com.example.sparta.order_service.application.dto.message.DeliveryCompleteMessage;
 import com.example.sparta.order_service.application.dto.message.DeliveryCreatedMessage;
 import com.example.sparta.order_service.domain.entity.Order;
+import com.example.sparta.order_service.domain.entity.OrderStatus;
 import com.example.sparta.order_service.domain.exception.OrderStatusException;
 import com.example.sparta.order_service.domain.repository.OrderRepository;
 import com.example.sparta.order_service.presentation.dto.request.OrderRequest;
@@ -12,7 +14,6 @@ import com.example.sparta.order_service.presentation.dto.response.OrderCreateRes
 import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,6 @@ import java.util.UUID;
 // TODO USER 권한에 따른 인가 로직 필요
 public class OrderCommandService {
     private final OrderRepository orderRepository;
-    private final ApplicationEventPublisher eventPublisher;
     private final RabbitTemplate rabbitTemplate;
 
     // TODO 주문 생성 시 허브 아이디 할당
@@ -44,6 +44,14 @@ public class OrderCommandService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         order.assignDeliveryId(message.deliveryId());
+    }
+
+    @Transactional
+    public void deliveryComplete(DeliveryCompleteMessage message) {
+        Order order = orderRepository.findById(message.orderId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+
+        order.changeOrderStatus(OrderStatus.COMPLETED);
     }
 
     @Transactional

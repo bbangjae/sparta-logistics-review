@@ -1,5 +1,6 @@
 package com.example.sparta.order_service.application.event;
 
+import com.example.sparta.order_service.application.dto.message.DeliveryCompleteMessage;
 import com.example.sparta.order_service.application.dto.message.DeliveryCreatedMessage;
 import com.example.sparta.order_service.application.service.OrderCommandService;
 import lombok.RequiredArgsConstructor;
@@ -22,4 +23,14 @@ public class EventListener {
             throw new AmqpRejectAndDontRequeueException("assign delivery process is failed", e);
         }
     }
+
+//  delivery 서비스에서 로직이 구현될 때 까진 주석
+//    @RabbitListener(queues = "order.queue.delivery.completed")
+//    public void handleDeliveryComplete(DeliveryCompleteMessage message) {
+//        try {
+//            orderCommandService.deliveryComplete(message);
+//        } catch (Exception e) {
+//            throw new AmqpRejectAndDontRequeueException("assign delivery process is failed", e);
+//        }
+//    }
 }
