@@ -69,5 +69,10 @@ public class UserEntity extends BaseEntity {
         }
         this.status = status;
     }
+
+    public void changeRole(UserRoleEnum role) {
+        this.role = role;
+    }
+
 }
 

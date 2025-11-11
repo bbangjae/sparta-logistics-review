@@ -51,6 +51,9 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USR001", "사용자를 찾을 수 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "USR002", "인증이 필요합니다."),
     DUPLICATED_USER(HttpStatus.CONFLICT, "USR003", "이미 존재하는 사용자입니다."),
+    INVALID_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "USR004", "잘못된 상태 변경 요청입니다"),
+    INVALID_ROLE_CHANGE(HttpStatus.BAD_REQUEST, "USR005", "잘못된 역할 변경 요청입니다"),
+    ALREADY_DELETED_USER(HttpStatus.BAD_REQUEST, "USR006", "이미 삭제된 사용자입니다."),
 
     // AI 관련 에러 (7000번대)
     AI_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI001", "AI 서비스를 사용할 수 없습니다.");
