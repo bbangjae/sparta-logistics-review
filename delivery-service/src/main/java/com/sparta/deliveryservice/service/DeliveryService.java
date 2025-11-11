@@ -6,21 +6,17 @@ import com.sparta.deliveryservice.client.dto.EtaPredictRequest;
 import com.sparta.deliveryservice.client.dto.EtaPredictResponse;
 import com.sparta.deliveryservice.client.dto.RouteInfoResponse;
 import com.sparta.deliveryservice.domain.Delivery;
-import com.sparta.deliveryservice.domain.DeliveryRouteHistory;
 import com.sparta.deliveryservice.domain.dto.request.DeliveryCreateRequest;
-import com.sparta.deliveryservice.domain.enums.DeliveryStatus;
-import com.sparta.deliveryservice.domain.enums.RouteStatus;
+import com.sparta.deliveryservice.dto.DeliveryDetailResponse;
 import com.sparta.deliveryservice.exception.EntityNotFoundException;
-import com.sparta.deliveryservice.producer.DeliveryEventProducer;
 import com.sparta.deliveryservice.producer.RabbitMQProducer;
 import com.sparta.deliveryservice.producer.dto.DeliveryCompletedEvent;
 import com.sparta.deliveryservice.repository.DeliveryRepository;
 import com.sparta.deliveryservice.repository.DeliveryRouteHistoryRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -133,6 +129,25 @@ public class DeliveryService {
         );
         rabbitMQProducer.sendDeliveryCompletedEvent(event);
     }
+
+    /**
+     * [GREEN] 배송 상세 정보 조회
+     */
+    @Transactional(readOnly = true) // 조회 전용 트랜잭션
+    public DeliveryDetailResponse getDeliveryDetails(UUID deliveryId) {
+
+        // 1. [TDD 검증] findById 호출 및 'ID 없음' 예외 처리
+        // 이 로직이 '실패 테스트'를 통과시킴
+        Delivery delivery = deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new EntityNotFoundException("배송", deliveryId));
+
+        // 2. [TDD 검증] 엔티티를 DTO로 변환하여 반환
+        // 이 로직이 '성공 테스트'를 통과시킴
+        // @Transactional 덕분에 지연 로딩(LAZY)된 routeHistories도 조회 가능
+        return new DeliveryDetailResponse(delivery);
+
+    }
+
 }
 
 

@@ -46,6 +46,16 @@ dependencies {
 	// 레딧엠큐
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 
+	// 1. Config Client 기본 기능 (Config Server에서 설정 가져오기)
+	implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
+	// 2. Discovery Client 기능 (유레카를 통해 Config Server를 찾기 위함)
+	// 이 라이브러리가 'spring.cloud.config.discovery.enabled' 속성을 활성화합니다.
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+
+	implementation 'org.springframework.retry:spring-retry'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
 }
 
 dependencyManagement {

@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.sparta.deliveryservice.domain.enums.DeliveryStatus.ARRIVED_AT_DEST_HUB;
+
 @Entity
 @Getter
 @Table(name = "p_deliveries")
@@ -127,6 +129,12 @@ public class Delivery extends BaseEntity {
 
         // (TDD 이후 리팩토링: 이미 배정되었는지, delivery의 status가 ARRIVED_AT_DEST_HUB인지 등 추가 검증)
 
+        // delivery의 status가 ARRIVED_AT_DEST_HUB인가?
+        if (this.status != ARRIVED_AT_DEST_HUB) {
+            throw new IllegalStateException("배달이 도착 완료 상태여야 담당자를 배정할 수 있습니다.");
+        }
+
+
         // 2. [TDD 검증] '성공' 테스트를 통과시키기 위한 담당자 배정
         this.companyDriverId = companyDriverId;
     }
@@ -144,7 +152,7 @@ public class Delivery extends BaseEntity {
 
         // 2. [TDD 검증] '성공' 테스트를 위한 상태 규칙
         // 이 규칙을 검증하는 [RED] 테스트는 다음에 추가해야 함
-        if (this.status != DeliveryStatus.ARRIVED_AT_DEST_HUB) {
+        if (this.status != ARRIVED_AT_DEST_HUB) {
             throw new IllegalStateException("최종 허브에 도착한 상태여야 배송을 시작할 수 있습니다.");
         }
 
@@ -165,6 +173,14 @@ public class Delivery extends BaseEntity {
         // 2. TDD 검증. '성공' 테스트를 통과시키기 위한 상태 변경
         this.status = DeliveryStatus.COMPLETED;
         this.actualDeliveryTime = LocalDateTime.now(); // 실제 완료 시간 기록
+    }
+
+    public void startRoute() {
+        this.status = DeliveryStatus.HUB_TO_HUB;
+    }
+
+    public void completeHubDelivery() {
+        this.status = DeliveryStatus.ARRIVED_AT_DEST_HUB;
     }
 }
 

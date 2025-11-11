@@ -10,6 +10,8 @@ import com.sparta.deliveryservice.domain.DeliveryRouteHistory;
 import com.sparta.deliveryservice.domain.dto.request.DeliveryCreateRequest;
 import com.sparta.deliveryservice.domain.enums.DeliveryStatus;
 import com.sparta.deliveryservice.domain.enums.RouteStatus;
+import com.sparta.deliveryservice.dto.DeliveryDetailResponse;
+import com.sparta.deliveryservice.exception.EntityNotFoundException;
 import com.sparta.deliveryservice.producer.DeliveryEventProducer;
 import com.sparta.deliveryservice.producer.RabbitMQProducer;
 import com.sparta.deliveryservice.producer.dto.DeliveryCompletedEvent;
@@ -429,6 +431,74 @@ public class DeliveryServiceTest {
         verify(rabbitMQProducer, never()).sendDeliveryCompletedEvent(any(DeliveryCompletedEvent.class));
 
 
+    }
+
+    // -----------------------------------------------------------------
+    // [TDD] GET /deliveries/{id} (상세 조회)
+    // -----------------------------------------------------------------
+
+    @Test
+    @DisplayName("[RED] GET (성공): 존재하는 ID로 배송 상세 조회 시, DTO(경로 포함)를 반환한다")
+    void getDeliveryDetails_Success_ShouldReturnDetailDto() {
+
+        // --- Given (준비) ---
+        // 1. 테스트할 ID
+        UUID deliveryId = UUID.randomUUID();
+
+        // 2. [핵심] '가짜' 배송(Delivery) 데이터 (자식 경로 2개를 포함)
+        Delivery fakeDelivery = Delivery.builder()
+                .orderId(UUID.randomUUID())
+                .status(DeliveryStatus.COMPLETED)
+                .build();
+
+        DeliveryRouteHistory fakeRoute1 = DeliveryRouteHistory.builder().sequence(1).build();
+        DeliveryRouteHistory fakeRoute2 = DeliveryRouteHistory.builder().sequence(2).build();
+
+        fakeDelivery.addRouteHistory(fakeRoute1);
+        fakeDelivery.addRouteHistory(fakeRoute2);
+
+        // 3. Repository가 이 가짜 데이터를 반환하도록 설정
+        when(deliveryRepository.findById(deliveryId))
+                .thenReturn(Optional.of(fakeDelivery));
+
+        // --- When (실행) ---
+        // 4. 'getDeliveryDetails' 메서드 실행 (아직 내용이 null)
+        DeliveryDetailResponse response = deliveryService.getDeliveryDetails(deliveryId);
+
+        // --- Then (검증) ---
+        // 5. 'findById'가 1번 호출되었는지 검증
+        verify(deliveryRepository, times(1)).findById(deliveryId);
+
+        // 6. 반환된 DTO가 null이 아니고, 핵심 정보가 일치하는지 검증
+        assertNotNull(response);
+        assertEquals(fakeDelivery.getOrderId(), response.getOrderId(), "주문 ID가 일치해야 합니다.");
+
+        // 7. [핵심] 자식(경로) 정보도 DTO에 포함되었는지 검증
+        assertNotNull(response.getRouteHistories());
+        assertEquals(2, response.getRouteHistories().size(), "경로 2개가 모두 포함되어야 합니다.");
+    }
+
+    @Test
+    @DisplayName("[RED] GET (실패): 존재하지 않는 ID로 배송 상세 조회 시, EntityNotFoundException이 발생한다")
+    void getDeliveryDetails_FailsWhen_IdNotFound() {
+
+        // --- Given (준비) ---
+        // 1. 존재하지 않는 ID
+        UUID nonExistentDeliveryId = UUID.randomUUID();
+
+        // 2. [핵심] Repository가 '빈 Optional'을 반환하도록 설정
+        when(deliveryRepository.findById(nonExistentDeliveryId))
+                .thenReturn(Optional.empty());
+
+        // --- When (실행) & Then (검증) ---
+        // 3. 'getDeliveryDetails' 메서드 실행 시 'EntityNotFoundException'이 발생하는지 검증
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            deliveryService.getDeliveryDetails(nonExistentDeliveryId);
+        });
+
+        // 4. 예외 메시지 검증
+        String expectedMessage = String.format("배송을(를) 찾을 수 없습니다. (ID: %s)", nonExistentDeliveryId.toString());
+        assertEquals(expectedMessage, exception.getMessage());
     }
 }
 
