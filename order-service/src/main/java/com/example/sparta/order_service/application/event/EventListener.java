@@ -4,12 +4,14 @@ import com.example.sparta.order_service.application.dto.message.DeliveryComplete
 import com.example.sparta.order_service.application.dto.message.DeliveryCreatedMessage;
 import com.example.sparta.order_service.application.service.OrderCommandService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class EventListener {
@@ -18,8 +20,10 @@ public class EventListener {
     @RabbitListener(queues = "delivery.queue.order.created")
     public void handleDeliveryCreate(DeliveryCreatedMessage message) {
         try {
+            log.info("배송 생성 요청 메시지 발송: {}", message.toString());
             orderCommandService.assignDeliveryId(message);
         } catch (Exception e) {
+            log.error("주문 생성 요청 메시지 발송 실패");
             throw new AmqpRejectAndDontRequeueException("assign delivery process is failed", e);
         }
     }
