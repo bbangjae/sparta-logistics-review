@@ -7,6 +7,7 @@ import com.sparta.user_service.domain.entity.UserEntity;
 import com.example.sparta.common.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import com.sparta.user_service.domain.repository.UserRepository;
+import com.sparta.user_service.presentation.request.UserUpdateRequest;
 import com.sparta.user_service.presentation.response.UserCreateResponse;
 import com.sparta.user_service.presentation.response.UserSearchResponse;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,6 @@ public class UserServiceV1 {
     }
 
     @Transactional
-
     public UserEntity changeStatus(UUID userId, UserStatusEnum status) {
 
         UserEntity user = userRepository.findById(userId)
@@ -94,5 +94,18 @@ public class UserServiceV1 {
         }
 
         user.delete(deletedBy);
+    }
+
+    @Transactional
+    public UserEntity updateUser(UUID userId, UserUpdateRequest request) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        user.updateUserInfo(
+                request.getName(),
+                request.getSlackId()
+        );
+
+        return user;
     }
 }
