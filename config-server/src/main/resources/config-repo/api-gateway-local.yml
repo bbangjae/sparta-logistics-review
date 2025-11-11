@@ -19,6 +19,10 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/v1/users/**
+        - id: delivery-service
+          uri: lb://DELIVERY-SERVICE
+          predicates:
+            - Path=/v1/delivery/**
       discovery:
         locator:
           enabled: true  # 서비스 디스커버리를 통해 동적으로 라우트를 생성하도록 설정
