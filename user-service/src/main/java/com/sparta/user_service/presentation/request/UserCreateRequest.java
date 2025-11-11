@@ -1,6 +1,6 @@
 package com.sparta.user_service.presentation.request;
 
-import com.sparta.user_service.domain.enums.UserRoleEnum;
+import com.example.sparta.common.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

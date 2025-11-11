@@ -41,6 +41,11 @@ public enum ErrorCode {
     // Order 관련 에러 (5000번대)
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORD001", "주문을 찾을 수 없습니다."),
     ORDER_MODIFICATION_NOT_ALLOWED(HttpStatus.CONFLICT, "ORD002", "주문 수정이 불가능한 상태입니다."),
+    ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORD003", "해당 주문에 접근할 권한이 없습니다."),
+    INVALID_SORT_PARAMETER(HttpStatus.BAD_REQUEST, "ORD004", "유효하지 않은 정렬 필드명입니다."),
+    ORDER_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "ORD005", "주문 처리 중 알 수 없는 오류가 발생했습니다."),
+    ORDER_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ORD006", "주문 조회 중 쿼리 실행에 실패했습니다."),
+
     
     // User 관련 에러 (6000번대)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USR001", "사용자를 찾을 수 없습니다."),
@@ -49,6 +54,8 @@ public enum ErrorCode {
     INVALID_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "USR004", "잘못된 상태 변경 요청입니다"),
     INVALID_ROLE_CHANGE(HttpStatus.BAD_REQUEST, "USR005", "잘못된 역할 변경 요청입니다"),
     ALREADY_DELETED_USER(HttpStatus.BAD_REQUEST, "USR006", "이미 삭제된 사용자입니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "USR007", "아이디 또는 비밀번호가 잘못되었습니다."),
+    SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "USR008", "사용자 서비스가 현재 이용 불가 상태입니다."),
 
     // AI 관련 에러 (7000번대)
     AI_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI001", "AI 서비스를 사용할 수 없습니다.");

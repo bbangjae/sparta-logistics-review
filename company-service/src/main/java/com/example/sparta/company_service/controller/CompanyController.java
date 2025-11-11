@@ -102,8 +102,8 @@ public class CompanyController {
      */
     @PostMapping
     public ResponseEntity<CompanyCreateResponseDto> createCompany(@RequestBody CompanyCreateRequestDto requestDto) {
-        // TODO: 권한 검증 로직 추가 (마스터 관리자만 업체 생성 가능)
-        // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
+        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
+        // TODO: 마스터 관리자만 업체 생성 가능하도록 권한 검증
         
         CompanyCreateResponseDto response = companyService.createCompany(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -125,7 +125,8 @@ public class CompanyController {
     public ResponseEntity<CompanyUpdateResponseDto> updateCompany(
             @PathVariable UUID companyId,
             @RequestBody CompanyUpdateRequestDto requestDto) {
-        // TODO: 권한 검증 로직 추가 (마스터 관리자, 허브 관리자만 업체 수정 가능)
+        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
+        // TODO: 마스터 관리자, 허브 관리자만 업체 수정 가능하도록 권한 검증
         // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
         
         CompanyUpdateResponseDto response = companyService.updateCompany(companyId, requestDto);
@@ -145,7 +146,8 @@ public class CompanyController {
      */
     @DeleteMapping("/{companyId}")
     public ResponseEntity<CompanyDeleteResponseDto> deleteCompany(@PathVariable UUID companyId) {
-        // TODO: 권한 검증 로직 추가 (마스터 관리자, 허브 관리자만 업체 삭제 가능)
+        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
+        // TODO: 마스터 관리자, 허브 관리자만 업체 삭제 가능하도록 권한 검증
         // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
         
         CompanyDeleteResponseDto response = companyService.deleteCompany(companyId);

@@ -1,4 +1,4 @@
-package com.sparta.user_service.domain.enums;
+package com.example.sparta.common.enums;
 
 public enum UserRoleEnum {
     MASTER,

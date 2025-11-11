@@ -2,13 +2,11 @@ package com.sparta.user_service.presentation.controller;
 
 import com.sparta.user_service.application.UserServiceV1;
 import com.sparta.user_service.domain.entity.UserEntity;
-import com.sparta.user_service.domain.enums.UserRoleEnum;
+import com.example.sparta.common.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import com.sparta.user_service.presentation.request.UserCreateRequest;
-import com.sparta.user_service.presentation.response.UserApprovalResponse;
-import com.sparta.user_service.presentation.response.UserCreateResponse;
-import com.sparta.user_service.presentation.response.UserRoleChangeResponse;
-import com.sparta.user_service.presentation.response.UserSearchResponse;
+import com.sparta.user_service.presentation.request.UserUpdateRequest;
+import com.sparta.user_service.presentation.response.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -77,5 +75,15 @@ public class UserControllerV1 {
     ) {
         userServiceV1.deleteUser(userId, deletedBy);
         return ResponseEntity.noContent().build(); // 204 No Content
+    }
+
+    @PatchMapping("/{userId}")
+    public ResponseEntity<UserUpdateResponse> updateUser(
+            @PathVariable UUID userId,
+            @RequestBody @Valid UserUpdateRequest request
+    ) {
+        UserEntity updatedUser = userServiceV1.updateUser(userId, request);
+        UserUpdateResponse response = UserUpdateResponse.of(updatedUser);
+        return ResponseEntity.ok(response);
     }
 }
