@@ -19,11 +19,12 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+// TODO USER 권한에 따른 인가 로직 필요
 public class OrderCommandService {
     private final OrderRepository orderRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    // TODO 주문 생성 시 배송 아이디, 허브 아이디 할당
+    // TODO 주문 생성 시 허브 아이디 할당
     @Transactional
     public OrderCreateResponse create(OrderRequest request, String userEmail) {
         Order order = request.toEntity();
