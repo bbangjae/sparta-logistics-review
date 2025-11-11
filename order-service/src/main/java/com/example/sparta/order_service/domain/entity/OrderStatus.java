@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 public enum OrderStatus {
     PAYMENT_PENDING("결제 대기 중"),
     PREPARING_FOR_SHIPMENT("출고 대기 중"),
-    SHIPPED("운송 중"),
+    SHIPPED("간선 운송 중"),
     DELIVERED("상품 배송 중"),
     COMPLETED("배송 완료"),
     CANCELED("주문 취소"),

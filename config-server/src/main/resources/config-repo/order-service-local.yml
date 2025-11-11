@@ -17,12 +17,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-  cloud:
-    openfeign:
-      client:
-        config:
-          delivery-service:
-            url:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBIT_USERNAME:guest}
+    password: ${RABBIT_PASSWORD:guest}
 
 eureka:
   client:
@@ -30,3 +29,13 @@ eureka:
       defaultZone: ${EUREKA_DEFAULT_ZONE}
     register-with-eureka: true
     fetch-registry: true
+
+mq:
+  exchange:
+    order: order.exchange
+    delivery: delivery.exchange
+  queue:
+    order: order.queue.delivery.create
+  routing_key:
+    order:
+
