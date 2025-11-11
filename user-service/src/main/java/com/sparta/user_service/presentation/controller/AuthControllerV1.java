@@ -22,16 +22,9 @@ public class AuthControllerV1 {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-
-        var user = authServiceV1.login(request.getUsername(), request.getPassword());
-
+        System.out.println("[AuthControllerV1] /login 호출됨 - username: " + request.getUsername());
         return ResponseEntity.ok(
-                LoginResponse.builder()
-                        .userId(user.getUserId())
-                        .username(user.getUsername())
-                        .role(user.getRole())
-                        .valid(true)
-                        .build()
+                authServiceV1.login(request.getUsername(), request.getPassword())
         );
     }
 }

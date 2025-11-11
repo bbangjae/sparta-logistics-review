@@ -13,4 +13,5 @@ public class LoginResponse {
     private String username;
     private UserRoleEnum role;
     private boolean valid;
+    private String token;
 }
