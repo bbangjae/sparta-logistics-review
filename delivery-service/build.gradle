@@ -56,6 +56,12 @@ dependencies {
 
 	implementation 'org.springframework.retry:spring-retry'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+	// [REFACTOR] JPA Metamodel 생성기 의존성 추가
+	// Spring Boot 3.2.x는 Hibernate 6.4.x를 사용하므로 호환되는 버전
+	implementation 'org.hibernate.orm:hibernate-jpamodelgen:6.4.4.Final'
+	annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.4.4.Final'
+
 }
 
 dependencyManagement {
