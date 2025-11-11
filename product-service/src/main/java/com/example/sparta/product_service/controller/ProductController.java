@@ -2,6 +2,7 @@ package com.example.sparta.product_service.controller;
 
 import com.example.sparta.product_service.dto.ProductCreateRequestDto;
 import com.example.sparta.product_service.dto.ProductCreateResponseDto;
+import com.example.sparta.product_service.dto.ProductDeleteResponseDto;
 import com.example.sparta.product_service.dto.ProductResponseDto;
 import com.example.sparta.product_service.dto.ProductUpdateRequestDto;
 import com.example.sparta.product_service.dto.ProductUpdateResponseDto;
@@ -137,6 +138,28 @@ public class ProductController {
         // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
         
         ProductUpdateResponseDto response = productService.updateProduct(productId, requestDto);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * 상품 논리 삭제 API
+     * 
+     * 상품을 논리적으로 삭제합니다.
+     * 실제 데이터는 유지하며 deleted_at, deleted_by 필드를 설정하고 상태를 INACTIVE로 변경합니다.
+     * 연관 데이터(주문 등)는 별도 비활성화 처리가 필요합니다.
+     * 
+     * @param productId 삭제할 상품의 UUID
+     * @return 삭제된 상품 정보
+     * @throws com.example.sparta.product_service.exception.ProductNotFoundException 존재하지 않는 상품 ID인 경우 404 Not Found
+     * @throws BusinessException 
+     *   - 403 Forbidden: 권한 없는 사용자가 요청 시 (마스터 관리자, 허브 관리자만 삭제 가능)
+     */
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<ProductDeleteResponseDto> deleteProduct(@PathVariable UUID productId) {
+        // TODO: 권한 검증 로직 추가 (마스터 관리자, 허브 관리자만 상품 삭제 가능)
+        // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
+        
+        ProductDeleteResponseDto response = productService.deleteProduct(productId);
         return ResponseEntity.ok(response);
     }
 }
