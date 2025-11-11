@@ -14,21 +14,29 @@ spring:
             locator:
               enabled: true  # 서비스 디스커버리를 통해 동적으로 라우트를 생성하도록 설정
               lower-case-service-id: true
-          routes:
-            - id: hub-service
-              uri: lb://hub-service
-              predicates:
-                - Path=/v1/hub/**
-            - id: order-service
-              uri: lb://order-service
-              predicates:
-                - Path=/v1/orders/**
-            - id: user-service
-              uri: lb://user-service
-              predicates:
-                - Path=/v1/auth/**, /v1/users/**
-              filters:
-                - RemoveRequestHeader=Cookie
+      routes:
+        - id: hub-service
+          uri: lb://hub-service
+          predicates:
+            - Path=/v1/hub/**
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/v1/orders/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/v1/users/**, /v1/users/**
+          filters:
+            - RemoveRequestHeader=Cookie
+        - id: delivery-service
+          uri: lb://DELIVERY-SERVICE
+          predicates:
+            - Path=/v1/delivery/**
+      discovery:
+        locator:
+          enabled: true  # 서비스 디스커버리를 통해 동적으로 라우트를 생성하도록 설정
+
 
 jwt:
   secret: "my-super-secret-key-my-super-secret-key-1234"
