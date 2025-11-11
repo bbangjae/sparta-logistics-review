@@ -1,7 +1,10 @@
 package com.example.sparta.product_service.service;
 
 import com.example.sparta.product_service.client.CompanyClient;
-import com.example.sparta.product_service.client.dto.CompanyResponseDto;
+import com.example.sparta.product_service.client.HubClient;
+import com.example.sparta.company_service.dto.CompanyResponseDto;
+import com.example.sparta.hub_service.hubs.dto.HubDetailResponse;
+import com.example.sparta.hub_service.core.enums.HubStatus;
 import com.example.sparta.product_service.dto.ProductCreateRequestDto;
 import com.example.sparta.product_service.dto.ProductCreateResponseDto;
 import com.example.sparta.product_service.dto.ProductDeleteResponseDto;
@@ -40,6 +43,7 @@ public class ProductService implements ProductQueryService {
     
     private final ProductRepository productRepository;
     private final CompanyClient companyClient;
+    private final HubClient hubClient;
     
     /**
      * 검색 조건에 따른 상품 목록을 조회합니다.
@@ -231,12 +235,9 @@ public class ProductService implements ProductQueryService {
             UUID companyId = requestDto.getCompany_id();
             validateCompanyExists(companyId);
             
-            // 2. 허브 존재 여부 검증 (추후 Hub 서비스 연동 시 구현)
-            // TODO: Hub 서비스가 구현되면 실제 허브 존재 여부 검증 추가
+            // 2. 허브 존재 여부 검증 (Hub Service 연동)
             UUID hubId = requestDto.getHub_id();
-            if (hubId == null) {
-                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "존재하지 않는 허브 ID입니다.");
-            }
+            validateHubExists(hubId);
             
             // 3. 상품명 중복 검증
             String trimmedName = requestDto.getNormalizedName();
@@ -285,7 +286,7 @@ public class ProductService implements ProductQueryService {
             CompanyResponseDto company = companyClient.getCompany(companyId);
             
             // 업체가 활성 상태인지 확인
-            if (!company.isActive()) {
+            if (!"ACTIVE".equals(company.getStatus())) {
                 log.warn("비활성 업체 감지 - companyId: {}, status: {}", companyId, company.getStatus());
                 throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "비활성 상태의 업체입니다.");
             }
@@ -303,6 +304,44 @@ public class ProductService implements ProductQueryService {
                     "업체 정보 조회 중 오류가 발생했습니다.", e);
         }
     }
+    
+    /**
+     * 허브 존재 여부를 검증합니다.
+     * 
+     * Hub Service를 호출하여 허브가 존재하고 활성 상태인지 확인합니다.
+     * Hub Service의 기존 API (GET /hubs/{hubId})를 사용합니다.
+     * 
+     * @param hubId 검증할 허브 ID
+     * @throws BusinessException 허브가 존재하지 않거나 비활성 상태인 경우
+     */
+    private void validateHubExists(UUID hubId) {
+        if (hubId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "허브 ID는 필수입니다.");
+        }
+
+        try {
+            HubDetailResponse hub = hubClient.getHub(hubId);
+            
+            // 허브가 활성 상태인지 확인
+            if (hub.status() != HubStatus.ACTIVE) {
+                log.warn("비활성 허브 감지 - hubId: {}, status: {}", hubId, hub.status());
+                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "비활성 상태의 허브입니다.");
+            }
+            
+            log.debug("허브 검증 완료 - hubId: {}, name: {}", hubId, hub.name());
+            
+        } catch (FeignException.NotFound e) {
+            log.warn("존재하지 않는 허브 - hubId: {}", hubId);
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, 
+                    String.format("존재하지 않는 허브입니다. ID: %s", hubId));
+        } catch (FeignException e) {
+            log.error("Hub 서비스 호출 중 오류 발생 - hubId: {}, 상태코드: {}", 
+                     hubId, e.status(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, 
+                    "허브 정보 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
     
     /**
      * 상품 정보를 수정합니다.

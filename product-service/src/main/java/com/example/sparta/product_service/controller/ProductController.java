@@ -107,8 +107,8 @@ public class ProductController {
      */
     @PostMapping
     public ResponseEntity<ProductCreateResponseDto> createProduct(@RequestBody ProductCreateRequestDto requestDto) {
-        // TODO: 권한 검증 로직 추가 (마스터 관리자, 허브 관리자, 업체 담당자만 상품 생성 가능)
-        // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
+        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
+        // TODO: 마스터 관리자, 허브 관리자, 업체 담당자만 상품 생성 가능하도록 권한 검증
         
         ProductCreateResponseDto response = productService.createProduct(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -134,8 +134,8 @@ public class ProductController {
             @PathVariable UUID productId,
             @RequestBody ProductUpdateRequestDto requestDto) {
         
-        // TODO: 권한 검증 로직 추가 (마스터 관리자, 허브 관리자, 업체 담당자만 상품 수정 가능)
-        // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
+        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
+        // TODO: 마스터 관리자, 허브 관리자, 업체 담당자만 상품 수정 가능하도록 권한 검증
         
         ProductUpdateResponseDto response = productService.updateProduct(productId, requestDto);
         return ResponseEntity.ok(response);
@@ -156,8 +156,8 @@ public class ProductController {
      */
     @DeleteMapping("/{productId}")
     public ResponseEntity<ProductDeleteResponseDto> deleteProduct(@PathVariable UUID productId) {
-        // TODO: 권한 검증 로직 추가 (마스터 관리자, 허브 관리자만 상품 삭제 가능)
-        // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
+        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
+        // TODO: 마스터 관리자, 허브 관리자만 상품 삭제 가능하도록 권한 검증
         
         ProductDeleteResponseDto response = productService.deleteProduct(productId);
         return ResponseEntity.ok(response);

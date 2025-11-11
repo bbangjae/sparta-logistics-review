@@ -1,6 +1,6 @@
 package com.example.sparta.product_service.client;
 
-import com.example.sparta.product_service.client.dto.CompanyResponseDto;
+import com.example.sparta.company_service.dto.CompanyResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
