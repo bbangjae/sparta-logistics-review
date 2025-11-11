@@ -19,7 +19,6 @@ public class AuthControllerV1 {
 
     @PostMapping("/login")
     public Mono<ResponseEntity<LoginResponse>> login(@RequestBody LoginRequest request) {
-        System.out.println("[AuthControllerV1] /login 호출됨 - username: " + request.getUsername());
         return authServiceV1.login(request.getUsername(), request.getPassword())
                 .map(ResponseEntity::ok);
     }
