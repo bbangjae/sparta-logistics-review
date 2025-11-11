@@ -1,7 +1,7 @@
 package com.example.sparta.order_service.domain.entity;
 
 import com.example.sparta.common.model.BaseEntity;
-import com.example.sparta.order_service.application.event.OrderCreateEvent;
+import com.example.sparta.order_service.application.dto.message.OrderCreatedMessage;
 import com.example.sparta.order_service.presentation.dto.request.OrderLineRequest;
 import com.example.sparta.order_service.presentation.dto.request.OrderUpdateRequest;
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
@@ -26,7 +26,8 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID orderId;
     private UUID deliveryId;
-    private UUID hubId;
+    private UUID originHubId;
+    private UUID destinationHubId;
     @Column(nullable = false)
     private String userEmail;
     @Column(nullable = false)
@@ -124,8 +125,8 @@ public class Order extends BaseEntity {
         orderLineCount = orderLines.size();
     }
 
-    public boolean isPreparing() {
-        return status == OrderStatus.PAYMENT_PENDING || status == OrderStatus.PREPARING_FOR_SHIPMENT;
+    public boolean isShipped() {
+        return status != OrderStatus.PAYMENT_PENDING && status != OrderStatus.PREPARING_FOR_SHIPMENT;
     }
 
     public void assignDeliveryId(UUID deliveryId) {
@@ -149,17 +150,11 @@ public class Order extends BaseEntity {
                 .build();
     }
 
-    public OrderCreateEvent toEvent() {
-        return OrderCreateEvent.builder()
+    public OrderCreatedMessage toMessage() {
+        return OrderCreatedMessage.builder()
                 .orderId(orderId)
+                .originAddress(originInfo.toResponse().address())
                 .destinationAddress(recipientInfo.toResponse().address())
-                .recipientName(recipientInfo.toResponse().name())
-                // TODO Order Entity에 slackId도 넣어야할지 고려
-                .recipientSlackId("tempSlackId")
-                // TODO 배송 생성 request에 hubId가 필요한지 논의
-                .originHubId(UUID.randomUUID())
-                .destinationHubId(UUID.randomUUID())
-                .orderLines(orderLines.stream().map(OrderLine::toResponse).toList())
                 .build();
     }
 }

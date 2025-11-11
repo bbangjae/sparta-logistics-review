@@ -28,14 +28,16 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue delivery() {
+    public Queue orderQueueDeliveryCreated() {
         return new Queue("order.queue.delivery.created");
     }
 
+    // 소비
+    // delivery.exchange로 오는 메시지 중 order.delivery.key 라우팅 키를 가진 것을 order.queue.delivery.created 큐로 보내 달라고 신청
     @Bean
-    public Binding deliveryCreatedBinding(Queue queue, TopicExchange deliveryExchange) {
-        return BindingBuilder.bind(queue)
-                .to(deliveryExchange)
+    public Binding deliveryCreatedBinding() {
+        return BindingBuilder.bind(orderQueueDeliveryCreated())
+                .to(deliveryExchange())
                 .with("order.delivery.key");
     }
 

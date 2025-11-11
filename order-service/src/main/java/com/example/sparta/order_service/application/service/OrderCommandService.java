@@ -2,6 +2,7 @@ package com.example.sparta.order_service.application.service;
 
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
+import com.example.sparta.order_service.application.dto.message.DeliveryCreatedMessage;
 import com.example.sparta.order_service.domain.entity.Order;
 import com.example.sparta.order_service.domain.exception.OrderStatusException;
 import com.example.sparta.order_service.domain.repository.OrderRepository;
@@ -32,13 +33,17 @@ public class OrderCommandService {
         order.setUserEmailToCreate(userEmail);
         Order savedOrder = orderRepository.save(order);
 
-        eventPublisher.publishEvent(savedOrder.toEvent());
+        rabbitTemplate.convertAndSend("delivery.exchange", "order.delivery.key", savedOrder.toMessage());
 
         return savedOrder.toCreateResponse();
     }
 
     @Transactional
-    public void allocateDeliveryId() {
+    public void assignDeliveryId(DeliveryCreatedMessage message) {
+        Order order = orderRepository.findById(message.orderId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+
+        order.assignDeliveryId(message.deliveryId());
     }
 
     @Transactional
@@ -46,7 +51,7 @@ public class OrderCommandService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND, "id와 일치하는 주문이 존재하지 않습니다. \n id: " + id));
 
-        if (!order.isPreparing())
+        if (order.isShipped())
             throw new OrderStatusException(ErrorCode.ORDER_MODIFICATION_NOT_ALLOWED, "상품이 이미 출고되어 주문 변경이 불가합니다.");
 
         order.update(request);
@@ -59,7 +64,7 @@ public class OrderCommandService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND, "id와 일치하는 주문이 존재하지 않습니다. \n id: " + id));
 
-        if (!order.isPreparing())
+        if (order.isShipped())
             throw new OrderStatusException(ErrorCode.ORDER_MODIFICATION_NOT_ALLOWED, "상품이 이미 출고되어 주문 변경이 불가합니다.");
 
         order.delete(userId);
