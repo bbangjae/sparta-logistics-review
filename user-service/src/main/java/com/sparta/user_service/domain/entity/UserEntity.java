@@ -3,9 +3,9 @@ package com.sparta.user_service.domain.entity;
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
 import com.example.sparta.common.model.BaseEntity;
-import com.sparta.user_service.presentation.request.UserCreateRequest;
-import com.sparta.user_service.domain.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
+import com.sparta.user_service.presentation.request.UserCreateRequest;
+import com.example.sparta.common.enums.UserRoleEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -74,5 +74,13 @@ public class UserEntity extends BaseEntity {
         this.role = role;
     }
 
+    public void updateUserInfo(String name, String slackId) {
+        if (name != null && !name.isBlank()) {
+            this.name = name;
+        }
+        if (slackId != null && !slackId.isBlank()) {
+            this.slackId = slackId;
+        }
+    }
 }
 

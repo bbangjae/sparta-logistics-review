@@ -54,6 +54,8 @@ public enum ErrorCode {
     INVALID_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "USR004", "잘못된 상태 변경 요청입니다"),
     INVALID_ROLE_CHANGE(HttpStatus.BAD_REQUEST, "USR005", "잘못된 역할 변경 요청입니다"),
     ALREADY_DELETED_USER(HttpStatus.BAD_REQUEST, "USR006", "이미 삭제된 사용자입니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "USR007", "아이디 또는 비밀번호가 잘못되었습니다."),
+    SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "USR008", "사용자 서비스가 현재 이용 불가 상태입니다."),
 
     // AI 관련 에러 (7000번대)
     AI_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI001", "AI 서비스를 사용할 수 없습니다.");
