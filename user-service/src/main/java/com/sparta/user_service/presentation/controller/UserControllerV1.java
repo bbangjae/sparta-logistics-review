@@ -2,7 +2,7 @@ package com.sparta.user_service.presentation.controller;
 
 import com.sparta.user_service.application.UserServiceV1;
 import com.sparta.user_service.domain.entity.UserEntity;
-import com.sparta.user_service.domain.enums.UserRoleEnum;
+import com.example.sparta.common.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import com.sparta.user_service.presentation.request.UserCreateRequest;
 import com.sparta.user_service.presentation.response.UserApprovalResponse;

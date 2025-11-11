@@ -4,7 +4,7 @@ import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
 import com.sparta.user_service.presentation.request.UserCreateRequest;
 import com.sparta.user_service.domain.entity.UserEntity;
-import com.sparta.user_service.domain.enums.UserRoleEnum;
+import com.example.sparta.common.enums.UserRoleEnum;
 import com.sparta.user_service.domain.enums.UserStatusEnum;
 import com.sparta.user_service.domain.repository.UserRepository;
 import com.sparta.user_service.presentation.response.UserCreateResponse;
@@ -47,7 +47,7 @@ public class UserServiceV1 {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (user.getStatus() == status) {
-            throw new BusinessException(ErrorCode.INVALID_STATUS_CHANGE, status.name());
+            throw new BusinessException(ErrorCode.INVALID_STATUS_CHANGE);
         }
 
         user.changeStatus(status);
@@ -60,7 +60,7 @@ public class UserServiceV1 {
                 .orElseThrow(() ->  new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (user.getRole() == role) {
-            throw new BusinessException(ErrorCode.INVALID_ROLE_CHANGE, role.name());
+            throw new BusinessException(ErrorCode.INVALID_ROLE_CHANGE);
         }
 
         user.changeRole(role);
