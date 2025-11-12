@@ -21,14 +21,9 @@ public class InternalUserControllerV1 {
 
     @GetMapping("/by-username")
     public UserInfoResponse findByUsername(@RequestParam String username) {
-        try {
-            UserEntity user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
-            return UserInfoResponse.of(user);
-        } catch (Exception e) {
-            System.out.println("[user-service ERROR] findByUsername 예외: " + e);
-            throw e;
-        }
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, ErrorCode.USER_NOT_FOUND.getMessage()));
+        return UserInfoResponse.of(user);
     }
 }
