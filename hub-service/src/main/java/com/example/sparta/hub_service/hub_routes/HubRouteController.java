@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/hub-routes")
 @RequiredArgsConstructor
-public class HubRuteController {
+public class HubRouteController {
 
     private final HubRouteService hubRouteService;
 
