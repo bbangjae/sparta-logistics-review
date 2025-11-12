@@ -6,7 +6,7 @@ import com.example.sparta.hub_service.hubs.HubResult;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record UpdateHubResponse(
+public record HubSearchResponse(
     UUID hubId,
     HubCode code,
     String name,
@@ -14,9 +14,10 @@ public record UpdateHubResponse(
     HubStatus status,
     BigDecimal latitude,
     BigDecimal longitude
+
 ) {
-    public static UpdateHubResponse from(HubResult result) {
-        return new UpdateHubResponse(
+    public static HubSearchResponse from(HubResult result) {
+        return new HubSearchResponse(
             result.hubId(),
             result.code(),
             result.name(),

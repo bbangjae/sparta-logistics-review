@@ -28,10 +28,12 @@ public class CacheConfig {
                 RedisSerializationContext.SerializationPair.fromSerializer(
                         RedisSerializer.java()
                     ))
-            .entryTtl(Duration.ofMinutes(30));
+            .entryTtl(Duration.ofMinutes(10));
 
         return RedisCacheManager.builder(connectionFactory)
             .cacheDefaults(defaultConfig)
+            .withCacheConfiguration("hub",
+                defaultConfig.entryTtl(Duration.ofHours(1)))
             .withCacheConfiguration("hubConnections",
                 defaultConfig.entryTtl(Duration.ofMinutes(30)))
             .build();
