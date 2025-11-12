@@ -1,6 +1,7 @@
 package com.example.sparta.hub_service.hub_routes.dto;
 
 import com.example.sparta.hub_service.core.domain.HubConnection;
+import java.io.Serializable;
 import java.util.UUID;
 
 public record HubConnectionResult(
@@ -9,7 +10,7 @@ public record HubConnectionResult(
     UUID arrivalHubId,
     Double distanceKm,
     Integer estimatedMinutes
-) implements java.io.Serializable {
+) implements Serializable {
     public static HubConnectionResult from(HubConnection HubConnection) {
         return new HubConnectionResult(
             HubConnection.getId(),
