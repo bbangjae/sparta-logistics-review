@@ -12,7 +12,20 @@ resilience4j:
         slowCallRateThreshold: 100
         slowCallDurationThreshold: 60000ms
         recordExceptions:
-          - java.lang.Exception
+          - org.springframework.dao.DataAccessException
+          - org.springframework.dao.QueryTimeoutException
+          - org.springframework.dao.TransientDataAccessException
+          - java.sql.SQLException
+          - java.sql.SQLTimeoutException
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - java.util.concurrent.TimeoutException
+          - org.hibernate.exception.JDBCConnectionException
+        ignoreExceptions:
+          - org.springframework.dao.DataIntegrityViolationException
+          - org.springframework.dao.DuplicateKeyException
+          - java.lang.IllegalArgumentException
+          - javax.validation.ConstraintViolationException
       hubService:
         registerHealthIndicator: true
         slidingWindowSize: 10
@@ -24,7 +37,17 @@ resilience4j:
         slowCallRateThreshold: 100
         slowCallDurationThreshold: 60000ms
         recordExceptions:
-          - java.lang.Exception
+          - feign.FeignException.InternalServerError
+          - feign.FeignException.ServiceUnavailable
+          - feign.FeignException.GatewayTimeout
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignoreExceptions:
+          - feign.FeignException.NotFound
+          - feign.FeignException.BadRequest
+          - java.lang.IllegalArgumentException
 
   retry:
     instances:
@@ -34,17 +57,36 @@ resilience4j:
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
         retryExceptions:
-          - java.lang.Exception
+          - org.springframework.dao.QueryTimeoutException
+          - org.springframework.dao.TransientDataAccessException
+          - java.sql.SQLTimeoutException
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - java.util.concurrent.TimeoutException
+          - org.hibernate.exception.JDBCConnectionException
         ignoreExceptions:
+          - org.springframework.dao.DataIntegrityViolationException
+          - org.springframework.dao.DuplicateKeyException
           - java.lang.IllegalArgumentException
+          - javax.validation.ConstraintViolationException
       hubService:
         maxAttempts: 3
         waitDuration: 1000ms
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
         retryExceptions:
-          - java.lang.Exception
+          - feign.FeignException.InternalServerError
+          - feign.FeignException.ServiceUnavailable
+          - feign.FeignException.GatewayTimeout
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
         ignoreExceptions:
+          - feign.FeignException.NotFound
+          - feign.FeignException.BadRequest
+          - feign.FeignException.Unauthorized
+          - feign.FeignException.Forbidden
           - java.lang.IllegalArgumentException
 
   timelimiter:

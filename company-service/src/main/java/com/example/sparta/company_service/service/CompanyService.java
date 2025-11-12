@@ -358,17 +358,36 @@ public class CompanyService implements CompanyQueryService {
      * 업체 목록 조회 실패 시 fallback 메서드
      */
     public Page<CompanyResponseDto> searchCompaniesFallback(CompanySearchCriteria searchCriteria, Pageable pageable, Exception ex) {
-        log.warn("업체 목록 조회 실패 - 조건: {}, 오류: {}", searchCriteria, ex.getMessage());
-        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, 
-                "업체 정보 조회 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.");
+        log.warn("업체 목록 조회 실패 - 조건: {}, 예외: {}", searchCriteria, ex.getClass().getSimpleName(), ex);
+        
+        String message = getDatabaseFailureMessage("업체 목록 조회", ex);
+        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, message);
     }
     
     /**
      * 업체 상세 조회 실패 시 fallback 메서드
      */
     public CompanyResponseDto getCompanyByIdFallback(UUID companyId, Exception ex) {
-        log.warn("업체 상세 조회 실패 - companyId: {}, 오류: {}", companyId, ex.getMessage());
-        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, 
-                "업체 정보 조회 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.");
+        log.warn("업체 상세 조회 실패 - companyId: {}, 예외: {}", companyId, ex.getClass().getSimpleName(), ex);
+        
+        String message = getDatabaseFailureMessage("업체 상세 조회", ex);
+        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, message);
+    }
+    
+    /**
+     * 데이터베이스 예외 타입별 상세 메시지 생성
+     */
+    private String getDatabaseFailureMessage(String operation, Exception ex) {
+        if (ex instanceof java.sql.SQLTimeoutException || ex instanceof org.springframework.dao.QueryTimeoutException) {
+            return String.format("%s 중 데이터베이스 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.", operation);
+        } else if (ex instanceof java.net.ConnectException || ex instanceof org.hibernate.exception.JDBCConnectionException) {
+            return String.format("%s 중 데이터베이스 연결에 실패했습니다. 시스템 관리자에게 문의해주세요.", operation);
+        } else if (ex instanceof org.springframework.dao.TransientDataAccessException) {
+            return String.format("%s 중 일시적인 데이터베이스 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", operation);
+        } else if (ex instanceof org.springframework.dao.DataAccessException) {
+            return String.format("%s 중 데이터베이스 오류가 발생했습니다. 시스템 관리자에게 문의해주세요.", operation);
+        } else {
+            return String.format("%s 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.", operation);
+        }
     }
 }

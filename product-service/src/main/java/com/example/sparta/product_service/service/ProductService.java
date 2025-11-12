@@ -497,17 +497,36 @@ public class ProductService implements ProductQueryService {
      * Company Service 호출 실패 시 fallback 메서드
      */
     private void validateCompanyExistsFallback(UUID companyId, Exception ex) {
-        log.warn("Company Service 호출 실패 - companyId: {}, 오류: {}", companyId, ex.getMessage());
-        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, 
-                "업체 정보 조회 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.");
+        log.warn("Company Service 호출 실패 - companyId: {}, 예외: {}", companyId, ex.getClass().getSimpleName(), ex);
+        
+        String message = getServiceFailureMessage("업체 정보 조회", ex);
+        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, message);
     }
     
     /**
      * Hub Service 호출 실패 시 fallback 메서드
      */
     private void validateHubExistsFallback(UUID hubId, Exception ex) {
-        log.warn("Hub Service 호출 실패 - hubId: {}, 오류: {}", hubId, ex.getMessage());
-        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, 
-                "허브 정보 조회 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.");
+        log.warn("Hub Service 호출 실패 - hubId: {}, 예외: {}", hubId, ex.getClass().getSimpleName(), ex);
+        
+        String message = getServiceFailureMessage("허브 정보 조회", ex);
+        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, message);
+    }
+    
+    /**
+     * 예외 타입별 상세 메시지 생성
+     */
+    private String getServiceFailureMessage(String serviceName, Exception ex) {
+        if (ex instanceof java.net.ConnectException) {
+            return String.format("%s 서비스에 연결할 수 없습니다. 네트워크 상태를 확인해주세요.", serviceName);
+        } else if (ex instanceof java.net.SocketTimeoutException || ex instanceof java.util.concurrent.TimeoutException) {
+            return String.format("%s 서비스 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.", serviceName);
+        } else if (ex instanceof feign.FeignException.ServiceUnavailable) {
+            return String.format("%s 서비스가 일시적으로 사용 중지되었습니다. 잠시 후 다시 시도해주세요.", serviceName);
+        } else if (ex instanceof feign.FeignException.InternalServerError) {
+            return String.format("%s 서비스에서 내부 오류가 발생했습니다. 관리자에게 문의해주세요.", serviceName);
+        } else {
+            return String.format("%s 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.", serviceName);
+        }
     }
 }

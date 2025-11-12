@@ -12,7 +12,17 @@ resilience4j:
         slowCallRateThreshold: 100
         slowCallDurationThreshold: 60000ms
         recordExceptions:
-          - java.lang.Exception
+          - feign.FeignException.InternalServerError
+          - feign.FeignException.ServiceUnavailable
+          - feign.FeignException.GatewayTimeout
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignoreExceptions:
+          - feign.FeignException.NotFound
+          - feign.FeignException.BadRequest
+          - java.lang.IllegalArgumentException
       hubService:
         registerHealthIndicator: true
         slidingWindowSize: 10
@@ -24,7 +34,17 @@ resilience4j:
         slowCallRateThreshold: 100
         slowCallDurationThreshold: 60000ms
         recordExceptions:
-          - java.lang.Exception
+          - feign.FeignException.InternalServerError
+          - feign.FeignException.ServiceUnavailable
+          - feign.FeignException.GatewayTimeout
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
+        ignoreExceptions:
+          - feign.FeignException.NotFound
+          - feign.FeignException.BadRequest
+          - java.lang.IllegalArgumentException
 
   retry:
     instances:
@@ -34,8 +54,18 @@ resilience4j:
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
         retryExceptions:
-          - java.lang.Exception
+          - feign.FeignException.InternalServerError
+          - feign.FeignException.ServiceUnavailable
+          - feign.FeignException.GatewayTimeout
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
         ignoreExceptions:
+          - feign.FeignException.NotFound
+          - feign.FeignException.BadRequest
+          - feign.FeignException.Unauthorized
+          - feign.FeignException.Forbidden
           - java.lang.IllegalArgumentException
       hubService:
         maxAttempts: 3
@@ -43,8 +73,18 @@ resilience4j:
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
         retryExceptions:
-          - java.lang.Exception
+          - feign.FeignException.InternalServerError
+          - feign.FeignException.ServiceUnavailable
+          - feign.FeignException.GatewayTimeout
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.ResourceAccessException
         ignoreExceptions:
+          - feign.FeignException.NotFound
+          - feign.FeignException.BadRequest
+          - feign.FeignException.Unauthorized
+          - feign.FeignException.Forbidden
           - java.lang.IllegalArgumentException
 
   timelimiter:
