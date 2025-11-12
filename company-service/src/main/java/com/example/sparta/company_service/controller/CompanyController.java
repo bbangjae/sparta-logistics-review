@@ -7,6 +7,7 @@ import com.example.sparta.company_service.dto.CompanyResponseDto;
 import com.example.sparta.company_service.dto.CompanyUpdateRequestDto;
 import com.example.sparta.company_service.dto.CompanyUpdateResponseDto;
 import com.example.sparta.company_service.service.CompanyService;
+import com.example.sparta.company_service.client.UserClient;
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ import java.util.UUID;
 public class CompanyController {
 
     private final CompanyService companyService;
+    private final UserClient userClient;
 
     /**
      * 업체 목록 조회 및 검색 API
@@ -51,7 +53,10 @@ public class CompanyController {
             @RequestParam(required = false) String name,
             @RequestParam(name = "hub_id", required = false) UUID hubId,
             @RequestParam(required = false) String status,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String userRole
     ) {
         // 페이지 크기 검증
         if (pageable.getPageSize() > 100) {
@@ -81,7 +86,11 @@ public class CompanyController {
      * @throws com.example.sparta.company_service.exception.CompanyNotFoundException 존재하지 않는 업체 ID인 경우 404 Not Found
      */
     @GetMapping("/{companyId}")
-    public ResponseEntity<CompanyResponseDto> getCompany(@PathVariable UUID companyId) {
+    public ResponseEntity<CompanyResponseDto> getCompany(
+            @PathVariable UUID companyId,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String userRole) {
         CompanyResponseDto company = companyService.getCompanyById(companyId);
         return ResponseEntity.ok(company);
     }
@@ -101,9 +110,13 @@ public class CompanyController {
      *   - 403 Forbidden: 권한 없는 사용자가 요청 시
      */
     @PostMapping
-    public ResponseEntity<CompanyCreateResponseDto> createCompany(@RequestBody CompanyCreateRequestDto requestDto) {
-        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
-        // TODO: 마스터 관리자만 업체 생성 가능하도록 권한 검증
+    public ResponseEntity<CompanyCreateResponseDto> createCompany(
+            @RequestBody CompanyCreateRequestDto requestDto,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String userRole) {
+        // Gateway 인증 필터에서 전달받은 사용자 정보 활용
+        // userId, username, userRole 헤더 정보로 권한 확인 가능
         
         CompanyCreateResponseDto response = companyService.createCompany(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -124,10 +137,12 @@ public class CompanyController {
     @PutMapping("/{companyId}")
     public ResponseEntity<CompanyUpdateResponseDto> updateCompany(
             @PathVariable UUID companyId,
-            @RequestBody CompanyUpdateRequestDto requestDto) {
-        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
-        // TODO: 마스터 관리자, 허브 관리자만 업체 수정 가능하도록 권한 검증
-        // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
+            @RequestBody CompanyUpdateRequestDto requestDto,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String userRole) {
+        // Gateway 인증 필터에서 전달받은 사용자 정보 활용
+        // userId, username, userRole 헤더 정보로 권한 확인 가능
         
         CompanyUpdateResponseDto response = companyService.updateCompany(companyId, requestDto);
         return ResponseEntity.ok(response);
@@ -145,10 +160,13 @@ public class CompanyController {
      * @throws BusinessException 403 Forbidden: 권한 없는 사용자가 요청 시
      */
     @DeleteMapping("/{companyId}")
-    public ResponseEntity<CompanyDeleteResponseDto> deleteCompany(@PathVariable UUID companyId) {
-        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
-        // TODO: 마스터 관리자, 허브 관리자만 업체 삭제 가능하도록 권한 검증
-        // 현재는 권한 검증을 생략하고 비즈니스 로직만 구현
+    public ResponseEntity<CompanyDeleteResponseDto> deleteCompany(
+            @PathVariable UUID companyId,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String userRole) {
+        // Gateway 인증 필터에서 전달받은 사용자 정보 활용
+        // userId, username, userRole 헤더 정보로 권한 확인 가능
         
         CompanyDeleteResponseDto response = companyService.deleteCompany(companyId);
         return ResponseEntity.ok(response);
