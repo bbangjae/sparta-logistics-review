@@ -17,6 +17,8 @@ import com.example.sparta.product_service.repository.ProductRepository;
 import feign.FeignException;
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -273,10 +275,13 @@ public class ProductService implements ProductQueryService {
      * 
      * Company Service를 호출하여 업체가 존재하고 활성 상태인지 확인합니다.
      * MSA 환경에서 서비스 간 통신을 통해 데이터 일관성을 보장합니다.
+     * Circuit Breaker와 Retry 패턴을 적용하여 장애 격리 및 복구력을 제공합니다.
      * 
      * @param companyId 검증할 업체 ID
      * @throws BusinessException 업체가 존재하지 않거나 비활성 상태인 경우
      */
+    @CircuitBreaker(name = "productService", fallbackMethod = "validateCompanyExistsFallback")
+    @Retry(name = "productService")
     private void validateCompanyExists(UUID companyId) {
         if (companyId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "업체 ID는 필수입니다.");
@@ -310,10 +315,13 @@ public class ProductService implements ProductQueryService {
      * 
      * Hub Service를 호출하여 허브가 존재하고 활성 상태인지 확인합니다.
      * Hub Service의 기존 API (GET /hubs/{hubId})를 사용합니다.
+     * Circuit Breaker와 Retry 패턴을 적용하여 장애 격리 및 복구력을 제공합니다.
      * 
      * @param hubId 검증할 허브 ID
      * @throws BusinessException 허브가 존재하지 않거나 비활성 상태인 경우
      */
+    @CircuitBreaker(name = "hubService", fallbackMethod = "validateHubExistsFallback")
+    @Retry(name = "hubService")
     private void validateHubExists(UUID hubId) {
         if (hubId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "허브 ID는 필수입니다.");
@@ -483,5 +491,23 @@ public class ProductService implements ProductQueryService {
             log.error("상품 논리 삭제 중 오류 발생 - productId: {}, 오류: {}", productId, e.getMessage(), e);
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "상품 삭제 중 오류가 발생했습니다.", e);
         }
+    }
+    
+    /**
+     * Company Service 호출 실패 시 fallback 메서드
+     */
+    private void validateCompanyExistsFallback(UUID companyId, Exception ex) {
+        log.warn("Company Service 호출 실패 - companyId: {}, 오류: {}", companyId, ex.getMessage());
+        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, 
+                "업체 정보 조회 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.");
+    }
+    
+    /**
+     * Hub Service 호출 실패 시 fallback 메서드
+     */
+    private void validateHubExistsFallback(UUID hubId, Exception ex) {
+        log.warn("Hub Service 호출 실패 - hubId: {}, 오류: {}", hubId, ex.getMessage());
+        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, 
+                "허브 정보 조회 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.");
     }
 }
