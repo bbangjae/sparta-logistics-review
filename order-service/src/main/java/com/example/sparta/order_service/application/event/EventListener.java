@@ -18,11 +18,6 @@ import java.util.UUID;
 public class EventListener {
     private final OrderCommandService orderCommandService;
 
-    @Value("${mq.order.queue.delivery.created}")
-    private String DELIVERY_CREATED_QUEUE;
-    @Value("${mq.order.queue.delivery.completed}")
-    private String DELIVERY_COMPLETED_QUEUE;
-
     @RabbitListener(queues = "order.queue.delivery.created")
     public void handleDeliveryCreate(DeliveryCreatedMessage message) {
         try {
