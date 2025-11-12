@@ -1,4 +1,4 @@
-package com.sparta.user_service.infrastructure.config;
+package com.sparta.auth_service.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

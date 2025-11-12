@@ -1,4 +1,4 @@
-package com.sparta.user_service.presentation.request;
+package com.sparta.auth_service.presentation.request;
 
 import lombok.Builder;
 import lombok.Getter;

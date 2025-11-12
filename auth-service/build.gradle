@@ -3,6 +3,8 @@ version = '0.0.1-SNAPSHOT'
 description = 'auth-service'
 
 dependencies {
+    implementation project(':common')
+
     // Spring Boot 기본 스타터
     implementation 'org.springframework.boot:spring-boot-starter-web'          // REST API용
     implementation 'org.springframework.boot:spring-boot-starter-security'     // Spring Security
@@ -22,6 +24,8 @@ dependencies {
     // Spring Cloud
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 }
 
 tasks.named('test') {

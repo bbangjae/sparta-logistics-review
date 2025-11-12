@@ -43,8 +43,8 @@ spring:
                 - Path=/v1/ai/**
 
 jwt:
-  secret: "my-super-secret-key-my-super-secret-key-1234"
-  expiration: 3600000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
 
 management:
   endpoints:

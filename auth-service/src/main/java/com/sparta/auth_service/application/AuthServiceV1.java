@@ -1,12 +1,11 @@
-package com.sparta.user_service.application;
+package com.sparta.auth_service.application;
 
 
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
-import com.sparta.user_service.domain.entity.UserEntity;
-import com.sparta.user_service.domain.enums.UserStatusEnum;
-import com.sparta.user_service.domain.repository.UserRepository;
-import com.sparta.user_service.presentation.response.LoginResponse;
+import com.sparta.auth_service.infrastructure.client.UserClient;
+import com.sparta.auth_service.presentation.response.LoginResponse;
+import com.sparta.auth_service.presentation.response.UserResponse;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -25,7 +24,8 @@ import java.util.Date;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceV1 {
-    private final UserRepository userRepository;
+
+    private final UserClient userClient;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${jwt.secret}")
@@ -40,16 +40,23 @@ public class AuthServiceV1 {
 
 
     public Mono<LoginResponse> login(String username, String password) {
-        return Mono.fromCallable(() ->
-                        userRepository.findByUsername(username)
-                                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND))
-                )
-                .subscribeOn(Schedulers.boundedElastic()) // blocking DB 호출을 별도 스레드에서 처리
+        return Mono.fromCallable(() -> {
+                    System.out.println("[1] Feign 호출 시작: " + username);
+                    UserResponse user = userClient.getUserByUsername(username);
+                    System.out.println("[2] Feign 호출 완료: " + user);
+                    return user;
+                })
+                .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(user -> {
+                    System.out.println("[3] Password 검증 전: " + user.getUsername());
                     if (!passwordEncoder.matches(password, user.getPassword())) {
+                        System.out.println("[4] Password 불일치");
                         return Mono.error(new BusinessException(ErrorCode.INVALID_CREDENTIALS));
                     }
-                    if (user.getStatus() != UserStatusEnum.APPROVED) {
+                    System.out.println("[5] Password 일치");
+
+                    if (!user.isApproved()) {
+                        System.out.println("[6] 승인되지 않은 사용자");
                         return Mono.error(new BusinessException(ErrorCode.UNAUTHORIZED));
                     }
 
@@ -70,15 +77,16 @@ public class AuthServiceV1 {
                             .valid(true)
                             .build();
 
+                    System.out.println("[7] LoginResponse 생성 완료: " + response);
                     return Mono.just(response);
                 })
                 .timeout(Duration.ofSeconds(3))
                 .onErrorMap(throwable -> {
+                    System.out.println("[ERROR] 예외 발생: " + throwable);
                     if (throwable instanceof java.util.concurrent.TimeoutException) {
                         return new BusinessException(ErrorCode.REQUEST_TIMEOUT);
                     }
                     return throwable;
                 });
-
     }
 }
