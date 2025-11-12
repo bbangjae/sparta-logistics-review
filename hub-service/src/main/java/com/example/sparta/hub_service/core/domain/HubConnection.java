@@ -62,4 +62,16 @@ public class HubConnection extends BaseEntity {
         connection.estimatedMinutes = duration;
         return connection;
     }
+
+    public void update(
+        HubId departureHubId,
+        HubId arrivalHubId,
+        Distance distance,
+        Duration duration
+    ) {
+        this.departureHubId = departureHubId;
+        this.arrivalHubId = arrivalHubId;
+        this.distanceKm = distance;
+        this.estimatedMinutes = duration;
+    }
 }

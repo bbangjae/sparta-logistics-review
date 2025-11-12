@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ public class HubRouteService {
     private final HubRoutePathFinder pathFinder;
 
     @Transactional
+    @CacheEvict(cacheNames = "hubRoute", key = "#departureHubId + #arrivalHubId")
     public HubRouteResult computeAndSaveRoute(
         HubId departureHubId,
         HubId arrivalHubId
@@ -81,15 +84,13 @@ public class HubRouteService {
     }
 
     @Transactional
+    @Cacheable(cacheNames = "hubRoute", key = "#departureHubId + #arrivalHubId")
     public HubRouteResult getOrComputeRoute(
         HubId departureHubId,
         HubId arrivalHubId
     ) {
         return hubRouteRepository
-            .findDetailedRouteBetween(
-                departureHubId,
-                arrivalHubId
-            )
+            .findDetailedRouteBetween(departureHubId, arrivalHubId)
             .orElseGet(() -> computeAndSaveRoute(departureHubId, arrivalHubId));
     }
 
