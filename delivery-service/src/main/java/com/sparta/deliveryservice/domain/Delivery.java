@@ -21,7 +21,7 @@ import static com.sparta.deliveryservice.domain.enums.DeliveryStatus.ARRIVED_AT_
 @Getter
 @Table(name = "p_deliveries")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLDelete(sql = "UPDATE delivery SET deleted_at = NOW() WHERE delivery_id = ?")
+@SQLDelete(sql = "UPDATE p_deliveries SET deleted_at = NOW() WHERE delivery_id = ?")
 @Where(clause = "deleted_at IS NULL")
 @Builder // 테스트를 위하 Builder를 클래스 레벨로 이동
 @AllArgsConstructor // Builder가 모든 필드를 사용하도록 추가

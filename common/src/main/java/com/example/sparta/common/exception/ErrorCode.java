@@ -61,6 +61,7 @@ public enum ErrorCode {
     ALREADY_DELETED_USER(HttpStatus.BAD_REQUEST, "USR006", "이미 삭제된 사용자입니다."),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "USR007", "아이디 또는 비밀번호가 잘못되었습니다."),
     SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "USR008", "사용자 서비스가 현재 이용 불가 상태입니다."),
+    REQUEST_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "USR009", "요청 처리 시간이 초과되었습니다. 잠시 후 다시 시도해주세요."),
 
     // AI 관련 에러 (7000번대)
     AI_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI001", "AI 서비스를 사용할 수 없습니다.");

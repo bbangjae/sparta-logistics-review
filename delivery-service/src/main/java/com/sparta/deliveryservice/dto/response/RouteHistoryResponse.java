@@ -1,4 +1,4 @@
-package com.sparta.deliveryservice.dto;
+package com.sparta.deliveryservice.dto.response;
 
 import com.sparta.deliveryservice.domain.DeliveryRouteHistory;
 import com.sparta.deliveryservice.domain.enums.RouteStatus;

@@ -12,6 +12,7 @@ import com.sparta.user_service.presentation.response.UserCreateResponse;
 import com.sparta.user_service.presentation.response.UserSearchResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -82,6 +84,13 @@ public class UserServiceV1 {
         pageable = PageRequest.of(pageable.getPageNumber(), pageSize, pageable.getSort());
 
         return userRepository.searchUsers(name, slackId, role, status, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserSearchResponse> searchUsersByUserId(UUID userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        return new PageImpl<>(List.of(UserSearchResponse.of(user)));
     }
 
     @Transactional
