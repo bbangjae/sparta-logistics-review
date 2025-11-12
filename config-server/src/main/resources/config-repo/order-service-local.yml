@@ -39,11 +39,36 @@ eureka:
     fetch-registry: true
 
 mq:
-  exchange:
-    order: order.exchange
-    delivery: delivery.exchange
-  queue:
-    order: order.queue.delivery.create
-  routing_key:
-    order:
-
+  order:
+    queue:
+      delivery:
+        created: order.queue.delivery.created
+        completed: order.queue.delivery.completed
+    exchange: order.exchange
+    routing_key:
+      delivery:
+        created: order.delivery.created
+        completed: order.delivery.completed
+  delivery:
+    queue:
+      order:
+        created: delivery.queue.order.created
+      hub:
+        route:
+          created: delivery.queue.hub.route.created
+    exchange: delivery.exchange
+    routing_key:
+      order:
+        created: delivery.order.created
+      hub:
+        route:
+          created: delivery.hub.route.created
+  hub:
+    queue:
+      route:
+        request: hub.queue.hub.route.request
+    exchange: hub.exchange
+    routing_key:
+      delivery:
+        route:
+          request: hub.delivery.route.request

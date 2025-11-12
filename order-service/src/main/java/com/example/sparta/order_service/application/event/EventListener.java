@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -17,7 +18,12 @@ import java.util.UUID;
 public class EventListener {
     private final OrderCommandService orderCommandService;
 
-    @RabbitListener(queues = "delivery.queue.order.created")
+    @Value("${mq.order.queue.delivery.created}")
+    private String DELIVERY_CREATED_QUEUE;
+    @Value("${mq.order.queue.delivery.completed}")
+    private String DELIVERY_COMPLETED_QUEUE;
+
+    @RabbitListener(queues = "order.queue.delivery.created")
     public void handleDeliveryCreate(DeliveryCreatedMessage message) {
         try {
             log.info("배송 생성 요청 메시지 발송: {}", message.toString());
@@ -28,13 +34,13 @@ public class EventListener {
         }
     }
 
-//  delivery 서비스에서 로직이 구현될 때 까진 주석
-//    @RabbitListener(queues = "order.queue.delivery.completed")
-//    public void handleDeliveryComplete(DeliveryCompleteMessage message) {
-//        try {
-//            orderCommandService.deliveryComplete(message);
-//        } catch (Exception e) {
-//            throw new AmqpRejectAndDontRequeueException("assign delivery process is failed", e);
-//        }
-//    }
+
+    @RabbitListener(queues = "order.queue.delivery.completed")
+    public void handleDeliveryComplete(DeliveryCompleteMessage message) {
+        try {
+            orderCommandService.deliveryComplete(message);
+        } catch (Exception e) {
+            throw new AmqpRejectAndDontRequeueException("assign delivery process is failed", e);
+        }
+    }
 }

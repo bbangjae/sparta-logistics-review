@@ -14,6 +14,7 @@ import com.example.sparta.order_service.presentation.dto.response.OrderCreateRes
 import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,11 @@ public class OrderCommandService {
     private final OrderRepository orderRepository;
     private final RabbitTemplate rabbitTemplate;
 
+    @Value("${mq.delivery.exchange}")
+    private String DELIVERY_EXCHANGE;
+    @Value("${mq.delivery.routing_key.order.created}")
+    private String ORDER_CREATED_ROUTING_KEY;
+
     // TODO 주문 생성 시 허브 아이디 할당
     @Transactional
     public OrderCreateResponse create(OrderRequest request, String username, String userRole, UUID userId) {
@@ -36,7 +42,7 @@ public class OrderCommandService {
         order.setUserInfoToCreate(username, userId);
         Order savedOrder = orderRepository.save(order);
 
-        rabbitTemplate.convertAndSend("delivery.exchange", "order.delivery.key", savedOrder.toMessage());
+        rabbitTemplate.convertAndSend(DELIVERY_EXCHANGE, ORDER_CREATED_ROUTING_KEY, savedOrder.toMessage());
 
         return savedOrder.toCreateResponse();
     }
