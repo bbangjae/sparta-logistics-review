@@ -3,6 +3,7 @@ package com.sparta.deliveryservice.repository;
 import com.sparta.deliveryservice.domain.Delivery;
 import feign.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -11,7 +12,7 @@ import java.util.UUID; // 1. UUID 임포트
 
 @Repository
 // 2. JpaRepository<Entity, ID타입> -> ID타입을 UUID로 변경
-public interface DeliveryRepository extends JpaRepository<Delivery, UUID> {
+public interface DeliveryRepository extends JpaRepository<Delivery, UUID>, JpaSpecificationExecutor<Delivery>{
 
     // [REFACTOR] Fetch Join을 사용한 커스텀 쿼리 추가
     /**

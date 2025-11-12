@@ -10,9 +10,10 @@ import com.sparta.deliveryservice.domain.DeliveryRouteHistory;
 import com.sparta.deliveryservice.domain.dto.request.DeliveryCreateRequest;
 import com.sparta.deliveryservice.domain.enums.DeliveryStatus;
 import com.sparta.deliveryservice.domain.enums.RouteStatus;
-import com.sparta.deliveryservice.dto.DeliveryDetailResponse;
+import com.sparta.deliveryservice.dto.request.DeliverySearchCriteria;
+import com.sparta.deliveryservice.dto.response.DeliveryDetailResponse;
+import com.sparta.deliveryservice.dto.response.DeliverySummaryResponse;
 import com.sparta.deliveryservice.exception.EntityNotFoundException;
-import com.sparta.deliveryservice.producer.DeliveryEventProducer;
 import com.sparta.deliveryservice.producer.RabbitMQProducer;
 import com.sparta.deliveryservice.producer.dto.DeliveryCompletedEvent;
 import com.sparta.deliveryservice.repository.DeliveryRepository;
@@ -25,8 +26,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -438,7 +443,7 @@ public class DeliveryServiceTest {
     // -----------------------------------------------------------------
 
     @Test
-    @DisplayName("[RED] GET (성공): 존재하는 ID로 배송 상세 조회 시, DTO(경로 포함)를 반환한다")
+    @DisplayName("[REFACTOR/GREEN] GET (성공): Fetch Join으로, 존재하는 ID로 배송 상세 조회 시, DTO(경로 포함)를 반환한다")
     void getDeliveryDetails_Success_ShouldReturnDetailDto() {
 
         // --- Given (준비) ---
@@ -458,7 +463,8 @@ public class DeliveryServiceTest {
         fakeDelivery.addRouteHistory(fakeRoute2);
 
         // 3. Repository가 이 가짜 데이터를 반환하도록 설정
-        when(deliveryRepository.findById(deliveryId))
+//        when(deliveryRepository.findById(deliveryId))
+        when(deliveryRepository.findDeliveryWithHistoriesById(deliveryId))
                 .thenReturn(Optional.of(fakeDelivery));
 
         // --- When (실행) ---
@@ -467,7 +473,8 @@ public class DeliveryServiceTest {
 
         // --- Then (검증) ---
         // 5. 'findById'가 1번 호출되었는지 검증
-        verify(deliveryRepository, times(1)).findById(deliveryId);
+//        verify(deliveryRepository, times(1)).findById(deliveryId);
+        verify(deliveryRepository, times(1)).findDeliveryWithHistoriesById(deliveryId);
 
         // 6. 반환된 DTO가 null이 아니고, 핵심 정보가 일치하는지 검증
         assertNotNull(response);
@@ -487,7 +494,8 @@ public class DeliveryServiceTest {
         UUID nonExistentDeliveryId = UUID.randomUUID();
 
         // 2. [핵심] Repository가 '빈 Optional'을 반환하도록 설정
-        when(deliveryRepository.findById(nonExistentDeliveryId))
+//        when(deliveryRepository.findById(nonExistentDeliveryId))
+        when(deliveryRepository.findDeliveryWithHistoriesById(nonExistentDeliveryId))
                 .thenReturn(Optional.empty());
 
         // --- When (실행) & Then (검증) ---
@@ -499,6 +507,171 @@ public class DeliveryServiceTest {
         // 4. 예외 메시지 검증
         String expectedMessage = String.format("배송을(를) 찾을 수 없습니다. (ID: %s)", nonExistentDeliveryId.toString());
         assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    // -----------------------------------------------------------------
+    // [TDD] GET /deliveries (목록 조회/페이지네이션) - [REFACTOR]
+    // -----------------------------------------------------------------
+
+    @Test
+//    @DisplayName("[REFACTOR/GREEN] GET (성공): 배송 목록 조회 시, 페이지네이션된 DTO를 반환한다")
+    @DisplayName("[REFACTOR/GREEN] GET (성공): 기본 배송 목록 조회(검색 조건 없음) 시, 페이지 DTO를 반환한다")
+    void searchDeliveries_Success_ShouldReturnPaginatedDto() {
+
+        // --- Given (준비) ---
+        // 1. 페이지 요청 객체 (0번째 페이지, 10개)
+        Pageable pageable = PageRequest.of(0,10);
+
+        // [REFACTOR] 검색 조건이 없는 빈 DTO 생성
+        DeliverySearchCriteria emptyCriteria = new DeliverySearchCriteria();
+
+        // 2. [핵심] DB에서 반환될 '가짜' 엔티티 목록
+        Delivery fakeDelivery1 = Delivery.builder()
+                .recipientName("김배송1")
+                .status(DeliveryStatus.COMPLETED)
+                .build();
+        Delivery fakeDelivery2 = Delivery.builder()
+                .recipientName("김배송2")
+                .status(DeliveryStatus.HUB_TO_HUB)
+                .build();
+        List<Delivery> deliveryList = List.of(fakeDelivery1, fakeDelivery2);
+
+        // 3. '가짜' 페이지(Page) 객체 생성 (총 2개의 요소)
+        Page<Delivery> fakePage = new PageImpl<>(deliveryList, pageable, 2L);
+
+        // 4. Repository가 이 가짜 페이지를 반환하도록 설정
+        // 참고: @Where(deleted_at=null)은 JPA가 자동 처리하므로 findAll() 호출
+        // [REFACTOR] findAll(Pageable) -> findAll(Specification, Pageable)
+        // Specification은 어떤 것이든 상관없다는 any() 사용
+//        when(deliveryRepository.findAll(pageable))
+        when(deliveryRepository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(fakePage);
+
+        // --- When (실행) ---
+        // 5. 'searchDeliveries' 메서드 실행 (아직 내용이 Null)
+        // [REFACTOR] 빈 criteria 객체를 전달
+        Page<DeliverySummaryResponse> responsePage = deliveryService.searchDeliveries(emptyCriteria, pageable);
+
+        // --- Then (검증) ---
+        // 6. 'findAll'이 1번 호출되었는지 검증
+        // [REFACTOR] 호출 검증 메서드 변경
+        verify(deliveryRepository, times(1)).findAll(any(Specification.class), eq(pageable));
+
+        // 7. 반환된 DTO 페이지가 null이 아니고, 핵심 정보가 일치하는지 검증
+        assertNotNull(responsePage);
+        assertEquals(2, responsePage.getTotalElements(), "전체 요소 개수가 2개여야 합니다.");
+        assertEquals(1, responsePage.getTotalPages(), "전체 페이지 개수가 1개여야 합니다.");
+
+        // 8. [핵심] 엔티티(Delivery)가 DTO(DeliverySummaryResponse)로 변환되었는지 검증
+        assertEquals("김배송1", responsePage.getContent().get(0).getRecipientName());
+        assertEquals(DeliveryStatus.HUB_TO_HUB, responsePage.getContent().get(1).getStatus());
+    }
+
+    // 다음 RED 테스트 : '검색 조건(Specification)이 포함된 테스트
+    @Test
+    @DisplayName("[RED] GET (성공): 'status'로 검색 시, 필터링된 Specification으로 repository를 호출해야 한다")
+    void searchDeliveries_WithStatusCriteria_ShouldCallRepositoryWithSpecification() {
+
+        // --- Given (준비) ---
+        Pageable pageable = PageRequest.of(0,10);
+
+        // 1. [핵심] 'status'가 'COMPLETED'인 검색 조건 생성
+        DeliverySearchCriteria criteria = new DeliverySearchCriteria();
+        criteria.setStatus(DeliveryStatus.COMPLETED);
+
+        // 2. DB에서 변환될 '가짜' 필터링된 목록 (COMPLETE 1건만)
+        Delivery fakeCompletedDelivery = Delivery.builder()
+                .recipientName("김완료")
+                .status(DeliveryStatus.COMPLETED)
+                .build();
+        Page<Delivery> fakePage = new PageImpl<>(List.of(fakeCompletedDelivery), pageable, 1L);
+
+        // 3. Repository Mocking
+        // 어떤 Specification이든, 이 Pageable과 함께 호출되면 fakePage를 반환
+        when(deliveryRepository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(fakePage);
+
+        // 4. [핵심] Repository에 전달될 'Specification'을 캡처할 Captor 준비
+        ArgumentCaptor<Specification<Delivery>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+
+        // --- When (실행) ---
+        // 5. 'searchDeliveries' 메서드 실행 (아직 내용이 null)
+        Page<DeliverySummaryResponse> responsePage = deliveryService.searchDeliveries(criteria, pageable);
+
+        // --- Then (검증) ---
+        // 6. [RED] 'findAll'이 1번 호출되었는지 검증
+        // Service가 null을 반환하므로, 이 테스트는 responsePage 검증에서 실패함
+        verify(deliveryRepository, times(1)).findAll(specCaptor.capture(), eq(pageable));
+
+        // 7. [RED] 반환된 DTO 페이지 검증
+        assertNotNull(responsePage);
+        assertEquals(1, responsePage.getTotalElements(), "필터링된 1건만 반환되어야 합니다.");
+        assertEquals("김완료", responsePage.getContent().get(0).getRecipientName());
+
+        // 8. 전달된 Specification이 null이 아닌지 검증
+        assertNotNull(specCaptor.getValue(), "Specification 객체가 생성되어 전달되어야 합니다.");
+    }
+
+    // 다음 RED 테스트 : '권한(DRIVER)'에 따라 필터링되는 테스트
+
+    // -----------------------------------------------------------------
+    // [TDD] DELETE /deliveries/{id} (논리 삭제)
+    // -----------------------------------------------------------------
+
+    @Test
+    @DisplayName("[RED] DELETE (성공): 존재하는 ID로 삭제 요청 시, repository.delete가 호출된다")
+    void deleteDelivery_Success_ShouldCallRepositoryDelete() {
+
+        // -- Given (준비) --
+        // 1. 테스트할 ID
+        UUID deliveryId = UUID.randomUUID();
+
+        // 2. [핵심] '가짜' 배송(Delivery) 데이터
+        Delivery fakeDelivery = Delivery.builder()
+                .orderId(UUID.randomUUID())
+                .status(DeliveryStatus.COMPLETED)
+                .build();
+
+        // 3. Repository가 이 가짜 데이터를 반환하도록 설정
+        when(deliveryRepository.findById(deliveryId))
+                .thenReturn(Optional.of(fakeDelivery));
+
+        // 4. repository.delete()는 void를 반환하므로, 정상 동작하도록 설정
+        doNothing().when(deliveryRepository).delete(fakeDelivery);
+
+        // -- When (실행) --
+        // 5. 'deleteDelivery' 메서드 실행 (아직 내용이 비어있음)
+        deliveryService.deleteDelivery(deliveryId);
+
+        // -- Then (검증) --
+        // 6. 'findById'가 1번 호출되었는지 검증 (존재 확인)
+        verify(deliveryRepository, times(1)).findById(deliveryId);
+
+        // 7. [핵심] 'delete(entity)'가 1번 호출되었는지 검증
+        // JPA가 이 호출을 @SQLDelete로 변환할 것임
+        verify(deliveryRepository, times(1)).delete(fakeDelivery);
+    }
+
+    @Test
+    @DisplayName("[RED] DELETE (실패): 존재하지 않는 ID로 삭제 요청 시, EntityNotFoundException이 발생하고 delete는 호출되지 않는다")
+    void deleteDelivery_FailsWhen_IdNotFound() {
+
+        // -- Given (준비) --
+        // 1. 존재하지 않는 ID
+        UUID nonExistentDeliveryId = UUID.randomUUID();
+
+        // 2. [핵심] Repository가 '빈 Optional'을 반환하도록 설정
+        when(deliveryRepository.findById(nonExistentDeliveryId))
+                .thenReturn(Optional.empty());
+
+        // -- When (실행) & Then (검증) --
+        // 3. 'deleteDelivery' 메서드 실행 시 'EntityNotFoundException'이 발생하는지 검증
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
+            deliveryService.deleteDelivery(nonExistentDeliveryId);
+        });
+
+        // 4. [중요] 예외가 발생했으므로, 'delete'는 절대 호출되지 않았어야 함
+        verify(deliveryRepository, never()).delete(any(Delivery.class));
     }
 }
 
