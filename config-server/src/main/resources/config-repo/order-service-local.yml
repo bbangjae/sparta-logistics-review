@@ -9,8 +9,9 @@ management:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:test
-    username: sa
+    url: jdbc:postgresql://localhost:5433/order_db
+    username: postgres
+    password: 123
   h2:
     console:
       enabled: true

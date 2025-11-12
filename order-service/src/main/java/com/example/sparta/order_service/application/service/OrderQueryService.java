@@ -47,7 +47,7 @@ public class OrderQueryService {
             case "DELIVERY_MANAGER" -> orderRepository.findByDeliveryId(id)
                     .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND))
                     .toDetailResponse();
-            case "SUPPLIER_MANAGER" -> orderRepository.findByCompanyId(id)
+            case "SUPPLIER_MANAGER" -> orderRepository.findById(id)
                     .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND))
                     .toDetailResponse();
             default -> throw new BusinessException(ErrorCode.INVALID_USER_ROLE);
