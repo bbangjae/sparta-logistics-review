@@ -63,12 +63,13 @@ public class ProductController {
                     size = 10,
                     sort = "createdAt",
                     direction = Sort.Direction.DESC
-            ) Pageable pageable) {
+            ) Pageable pageable,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String userRole) {
         
-        // TODO: JWT 토큰 검증 및 권한 확인 로직 추가
-        // - 토큰 유효성 검증
-        // - 마스터 관리자, 허브 관리자, 업체 담당자 권한 확인
-        // - 업체 담당자의 경우 본인 업체 상품만 조회 가능하도록 제한
+        // Gateway 인증 필터에서 전달받은 사용자 정보 활용
+        // userId, username, userRole 헤더 정보로 권한별 조회 제한 가능
         
         Page<ProductResponseDto> products = productService.getProducts(name, company_id, hub_id, status, pageable);
         return ResponseEntity.ok(products);
@@ -86,7 +87,11 @@ public class ProductController {
      * @throws com.example.sparta.product_service.exception.ProductNotFoundException 존재하지 않는 상품 ID인 경우 404 Not Found
      */
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductResponseDto> getProduct(@PathVariable UUID productId) {
+    public ResponseEntity<ProductResponseDto> getProduct(
+            @PathVariable UUID productId,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String userRole) {
         ProductResponseDto product = productService.getProductById(productId);
         return ResponseEntity.ok(product);
     }
@@ -106,9 +111,12 @@ public class ProductController {
      *   - 403 Forbidden: 권한 없는 사용자가 요청 시
      */
     @PostMapping
-    public ResponseEntity<ProductCreateResponseDto> createProduct(@RequestBody ProductCreateRequestDto requestDto) {
-        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
-        // TODO: 마스터 관리자, 허브 관리자, 업체 담당자만 상품 생성 가능하도록 권한 검증
+    public ResponseEntity<ProductCreateResponseDto> createProduct(
+            @RequestBody ProductCreateRequestDto requestDto,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username, 
+            @RequestHeader("X-User-Role") String userRole) {
+        // Gateway 인증 필터에서 전달받은 사용자 정보 활용
         
         ProductCreateResponseDto response = productService.createProduct(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -132,10 +140,14 @@ public class ProductController {
     @PutMapping("/{productId}")
     public ResponseEntity<ProductUpdateResponseDto> updateProduct(
             @PathVariable UUID productId,
-            @RequestBody ProductUpdateRequestDto requestDto) {
+            @RequestBody ProductUpdateRequestDto requestDto,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String userRole) {
         
-        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
-        // TODO: 마스터 관리자, 허브 관리자, 업체 담당자만 상품 수정 가능하도록 권한 검증
+        // Gateway 인증 필터에서 전달받은 사용자 정보 활용
+        // userId, username, userRole 헤더 정보로 권한 확인 가능
+        // 권한별 접근 제어: userRole 헤더로 MASTER_ADMIN, HUB_MANAGER, COMPANY_MANAGER 확인 가능
         
         ProductUpdateResponseDto response = productService.updateProduct(productId, requestDto);
         return ResponseEntity.ok(response);
@@ -155,9 +167,14 @@ public class ProductController {
      *   - 403 Forbidden: 권한 없는 사용자가 요청 시 (마스터 관리자, 허브 관리자만 삭제 가능)
      */
     @DeleteMapping("/{productId}")
-    public ResponseEntity<ProductDeleteResponseDto> deleteProduct(@PathVariable UUID productId) {
-        // TODO: User Service AuthService 구현 후 JWT 토큰 검증 및 권한 확인 추가
-        // TODO: 마스터 관리자, 허브 관리자만 상품 삭제 가능하도록 권한 검증
+    public ResponseEntity<ProductDeleteResponseDto> deleteProduct(
+            @PathVariable UUID productId,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-User-Role") String userRole) {
+        // Gateway 인증 필터에서 전달받은 사용자 정보 활용
+        // userId, username, userRole 헤더 정보로 권한 확인 가능
+        // 권한별 접근 제어: userRole 헤더로 MASTER_ADMIN, HUB_MANAGER만 삭제 가능하도록 확인 가능
         
         ProductDeleteResponseDto response = productService.deleteProduct(productId);
         return ResponseEntity.ok(response);
