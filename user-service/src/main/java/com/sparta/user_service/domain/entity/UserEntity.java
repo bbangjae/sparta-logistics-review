@@ -23,18 +23,13 @@ import java.util.UUID;
 public class UserEntity extends BaseEntity {
     @Id
     @Column(name = "user_id", updatable = false, nullable = false)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.userId == null) {
-            this.userId = UUID.randomUUID();
-        }
-    }
 
     @Column()
     @Enumerated(value = EnumType.STRING)
-    private UserRoleEnum role;
+    @Builder.Default
+    private UserRoleEnum role = UserRoleEnum.USER;
 
     @Column(nullable = false)
     private String username;
@@ -54,26 +49,34 @@ public class UserEntity extends BaseEntity {
     private UserStatusEnum status = UserStatusEnum.PENDING;
 
     // 권한별 식별값 추가
-//    @Column(name = "hub_id")
-//    private UUID hubId;
-//
-//    @Column(name = "company_id")
-//    private UUID companyId;
-//
-//    @Column(name = "delivery_id")
-//    private UUID deliveryId;
-//
-//    @Column(name = "master_id")
-//    private UUID masterId;
+    @Column(name = "hub_id")
+    private UUID hubId;
+
+    @Column(name = "company_id")
+    private UUID companyId;
+
+    @Column(name = "delivery_id")
+    private UUID deliveryId;
 
     public static UserEntity create(UserCreateRequest userCreateRequest, String encodedPassword){
-        return UserEntity.builder()
-                .role(userCreateRequest.getRole())
+        UserEntity.UserEntityBuilder builder = UserEntity.builder()
+                .role(userCreateRequest.getRole() != null ? userCreateRequest.getRole() : UserRoleEnum.USER)
                 .username(userCreateRequest.getUsername())
                 .name(userCreateRequest.getName())
                 .password(encodedPassword)
-                .slackId(userCreateRequest.getSlackId())
-                .build();
+                .slackId(userCreateRequest.getSlackId());
+
+        if (userCreateRequest.getHubId() != null) {
+            builder.hubId(userCreateRequest.getHubId());
+        }
+        if (userCreateRequest.getCompanyId() != null) {
+            builder.companyId(userCreateRequest.getCompanyId());
+        }
+        if (userCreateRequest.getDeliveryId() != null) {
+            builder.deliveryId(userCreateRequest.getDeliveryId());
+        }
+
+        return builder.build();
     }
 
     public void changeStatus(UserStatusEnum status) {
