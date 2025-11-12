@@ -1,6 +1,7 @@
 package com.example.sparta.order_service.presentation.controller;
 
 import com.example.sparta.order_service.application.service.OrderClaimCommandService;
+import com.example.sparta.order_service.application.service.OrderClaimQueryService;
 import com.example.sparta.order_service.application.service.OrderQueryService;
 import com.example.sparta.order_service.application.service.OrderCommandService;
 import com.example.sparta.order_service.presentation.dto.request.OrderClaimRequest;
@@ -29,6 +30,7 @@ public class OrderController {
     private final OrderCommandService orderCommandService;
     private final OrderQueryService orderQueryService;
     private final OrderClaimCommandService orderClaimCommandService;
+    private final OrderClaimQueryService orderClaimQueryService;
 
     @PostMapping
     public ResponseEntity<OrderCreateResponse> create(@RequestBody @Valid OrderRequest orderRequest,
@@ -80,5 +82,14 @@ public class OrderController {
 
         return ResponseEntity.created(URI.create("/v1/orders/".concat(orderId.toString())))
                 .body(orderClaimCommandService.create(orderId, userId, request));
+    }
+
+    @GetMapping("/{orderId}/claim")
+    public ResponseEntity<Page<OrderClaimResponse>> getClaims(
+            @PathVariable UUID orderId,
+            @RequestHeader("X-USERID") UUID userId,
+            Pageable pageable) {
+
+        return ResponseEntity.ok(orderClaimQueryService.findByOrderId(orderId, pageable));
     }
 }
