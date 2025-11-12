@@ -1,8 +1,8 @@
-package com.sparta.user_service.presentation.controller;
+package com.sparta.auth_service.presentation.controller;
 
-import com.sparta.user_service.application.AuthServiceV1;
-import com.sparta.user_service.presentation.request.LoginRequest;
-import com.sparta.user_service.presentation.response.LoginResponse;
+import com.sparta.auth_service.application.AuthServiceV1;
+import com.sparta.auth_service.presentation.request.LoginRequest;
+import com.sparta.auth_service.presentation.response.LoginResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
