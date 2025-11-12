@@ -8,6 +8,7 @@ import com.example.sparta.order_service.presentation.dto.request.SearchCondition
 import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import com.example.sparta.order_service.presentation.dto.response.OrderResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class OrderQueryService {
         };
     }
 
+    @Cacheable(value = "orders", key = "#id")
     public OrderDetailResponse findById(UUID id, String userRole, String username) {
         return switch (userRole) {
             case "MASTER" -> orderRepository.findById(id)

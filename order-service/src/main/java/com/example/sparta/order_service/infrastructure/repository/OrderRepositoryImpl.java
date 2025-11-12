@@ -143,7 +143,7 @@ public class OrderRepositoryImpl implements OrderQueryRepository {
     }
 
     private BooleanExpression usernameEq(String username) {
-        return order.userEmail.eq(username);
+        return order.username.eq(username);
     }
 
     private BooleanExpression statusEq(String status) {

@@ -14,6 +14,7 @@ import com.example.sparta.order_service.presentation.dto.response.OrderCreateRes
 import com.example.sparta.order_service.presentation.dto.response.OrderDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +57,7 @@ public class OrderCommandService {
         order.changeOrderStatus(OrderStatus.COMPLETED);
     }
 
+    @CacheEvict(value = "orders", key = "#id")
     @Transactional
     public OrderDetailResponse update(UUID id, OrderUpdateRequest request, String userRole) {
         if(!(userRole.equals("MASTER") || userRole.equals("HUB_MANAGER")))
@@ -72,6 +74,7 @@ public class OrderCommandService {
         return order.toDetailResponse();
     }
 
+    @CacheEvict(value = "orders", key = "#id")
     @Transactional
     public void delete(UUID id, Long userId, String userRole) {
         if(!(userRole.equals("MASTER") || userRole.equals("HUB_MANAGER")))
