@@ -22,6 +22,7 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "C004", "지원하지 않는 HTTP 메소드입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "C005", "접근이 거부되었습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C006", "서버 내부 오류가 발생했습니다."),
+    INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "C007", "잘못된 권한명입니다."),
     
     // Company 관련 에러 (2000번대)
     COMPANY_NOT_FOUND(HttpStatus.NOT_FOUND, "COM001", "업체를 찾을 수 없습니다."),

@@ -47,7 +47,50 @@ public class OrderRepositoryImpl implements OrderQueryRepository {
 
 
     @Override
-    public Page<OrderResponse> search(SearchCondition condition, String userEmail, Pageable pageable) {
+    public Page<OrderResponse> searchForAdmin(SearchCondition condition, String username, Pageable pageable) {
+        List<OrderResponse> content = queryFactory
+                .select(new QOrderResponse(
+                        order.orderId,
+                        order.createdAt,
+                        order.dueDate,
+                        order.recipientInfo.companyName,
+                        order.recipientInfo.name,
+                        productNameDisplay(),
+                        order.totalAmount,
+                        order.status.stringValue()
+                ))
+                .from(order)
+                .where(
+                        usernameEq(username),
+                        statusEq(condition.state()),
+                        orderDateBetween(condition.startDate(), condition.endDate()),
+                        searchByKeyword(condition.searchType(), condition.keyword()),
+                        order.deletedAt.isNull()
+                )
+                .orderBy(getSortOrderSpecifiers(pageable.getSort()))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        JPAQuery<Long> countQuery = queryFactory
+                .select(order.count())
+                .from(order)
+                .where(
+                        usernameEq(username),
+                        statusEq(condition.state()),
+                        orderDateBetween(condition.startDate(), condition.endDate()),
+                        searchByKeyword(condition.searchType(), condition.keyword()),
+                        order.deletedAt.isNull()
+                );
+        Long total = countQuery.fetchOne();
+        if (total == null)
+            total = 0L;
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Page<OrderResponse> searchForHubManager(SearchCondition condition, String username, Pageable pageable) {
         List<OrderResponse> content = queryFactory
                 .select(new QOrderResponse(
                         order.orderId,
@@ -76,7 +119,7 @@ public class OrderRepositoryImpl implements OrderQueryRepository {
                 .select(order.count())
                 .from(order)
                 .where(
-//                        userEmailEq(userEmail),
+                        usernameEq(username),
                         statusEq(condition.state()),
                         orderDateBetween(condition.startDate(), condition.endDate()),
                         searchByKeyword(condition.searchType(), condition.keyword()),
@@ -89,8 +132,18 @@ public class OrderRepositoryImpl implements OrderQueryRepository {
         return new PageImpl<>(content, pageable, total);
     }
 
-    private BooleanExpression userEmailEq(String userEmail) {
-        return StringUtils.hasText(userEmail) ? order.userEmail.eq(userEmail) : null;
+    @Override
+    public Page<OrderResponse> searchForDelivery(SearchCondition condition, String username, Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public Page<OrderResponse> searchForSupplier(SearchCondition condition, String username, Pageable pageable) {
+        return null;
+    }
+
+    private BooleanExpression usernameEq(String username) {
+        return order.userEmail.eq(username);
     }
 
     private BooleanExpression statusEq(String status) {

@@ -29,16 +29,19 @@ public class OrderController {
 
     // TODO Principal 객체를 받아서 userEmail 할당해주기
     @PostMapping
-    public ResponseEntity<OrderCreateResponse> create(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request) {
-        String username = request.getHeader("X-USERNAME");
-        String userRole = request.getHeader("X-USER-ROLE");
-        return ResponseEntity.created(URI.create("temp"))
-                .body(commandService.create(orderRequest, username, userRole));
+    public ResponseEntity<OrderCreateResponse> create(@RequestBody @Valid OrderRequest orderRequest,
+                                                      @RequestHeader("X-USERNAME") String username,
+                                                      @RequestHeader("X-USER-ROLE") String userRole,
+                                                      @RequestHeader("X-USERID") UUID userId) {
+        return ResponseEntity.created(URI.create("/v1/orders"))
+                .body(commandService.create(orderRequest, username, userRole, userId));
     }
 
     @GetMapping
-    public ResponseEntity<Page<OrderResponse>> search(SearchCondition condition, Pageable pageable) {
-        return ResponseEntity.ok(queryService.search(condition, "tempEmail", pageable));
+    public ResponseEntity<Page<OrderResponse>> search(SearchCondition condition, Pageable pageable, HttpServletRequest request) {
+        String username = request.getHeader("X-USERNAME");
+        String userRole = request.getHeader("X-USER-ROLE");
+        return ResponseEntity.ok(queryService.search(condition, username, userRole, pageable));
     }
 
     @GetMapping("/{id}")
@@ -53,6 +56,8 @@ public class OrderController {
         String userRole = request.getHeader("X-USER-ROLE");
         return ResponseEntity.ok(commandService.update(id, orderUpdateRequest, userRole));
     }
+
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id, HttpServletRequest request) {

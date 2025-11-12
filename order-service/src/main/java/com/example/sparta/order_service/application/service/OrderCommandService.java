@@ -28,12 +28,12 @@ public class OrderCommandService {
 
     // TODO 주문 생성 시 허브 아이디 할당
     @Transactional
-    public OrderCreateResponse create(OrderRequest request, String userEmail, String userRole) {
+    public OrderCreateResponse create(OrderRequest request, String username, String userRole, UUID userId) {
         if(!(userRole.equals("MASTER") || userRole.equals("SUPPLIER_MANAGER")))
             throw new BusinessException(ErrorCode.ORDER_CREATE_DENIED);
 
         Order order = request.toEntity();
-        order.setUserEmailToCreate(userEmail);
+        order.setUserInfoToCreate(username, userId);
         Order savedOrder = orderRepository.save(order);
 
         rabbitTemplate.convertAndSend("delivery.exchange", "order.delivery.key", savedOrder.toMessage());

@@ -30,13 +30,15 @@ public class Order extends BaseEntity {
     private UUID destinationHubId;
     private UUID currentHubId;
     @Column(nullable = false)
+    private UUID userId;
+    @Column(nullable = false)
     private String username;
     @Column(nullable = false)
     private Long totalAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
+    @Column(length = 100)
     private String deliveryMessage;
-    private Integer deliveryFee;
     @Column(nullable = false)
     private LocalDateTime dueDate;
     private String representativeProductName;
@@ -76,13 +78,16 @@ public class Order extends BaseEntity {
     private List<OrderHistory> orderHistories = new ArrayList<>();
 
     @Builder
-    public Order(UUID orderId, String username, Long totalAmount, OrderStatus status, String deliveryMessage, Integer deliveryFee, LocalDateTime dueDate, String representativeProductName, int orderLineCount, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories) {
+    public Order(UUID orderId, UUID deliveryId, UUID originHubId, UUID destinationHubId, UUID currentHubId, String username, Long totalAmount, OrderStatus status, String deliveryMessage, LocalDateTime dueDate, String representativeProductName, int orderLineCount, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories) {
         this.orderId = orderId;
+        this.deliveryId = deliveryId;
+        this.originHubId = originHubId;
+        this.destinationHubId = destinationHubId;
+        this.currentHubId = currentHubId;
         this.username = username;
         this.totalAmount = totalAmount;
         this.status = status;
         this.deliveryMessage = deliveryMessage;
-        this.deliveryFee = deliveryFee;
         this.dueDate = dueDate;
         this.representativeProductName = representativeProductName;
         this.orderLineCount = orderLineCount;
@@ -91,7 +96,6 @@ public class Order extends BaseEntity {
         this.orderLines = orderLines;
         this.orderHistories = orderHistories;
     }
-
 
     public OrderCreateResponse toCreateResponse() {
         return OrderCreateResponse.builder()
@@ -107,8 +111,9 @@ public class Order extends BaseEntity {
                 .build();
     }
 
-    public void setUserEmailToCreate(String email) {
-        username = email;
+    public void setUserInfoToCreate(String username, UUID userId) {
+        this.username = username;
+        this.userId = userId;
     }
 
     public void update(OrderUpdateRequest request) {
