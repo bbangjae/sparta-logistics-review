@@ -21,7 +21,6 @@ import java.util.UUID;
 public class OrderQueryService {
     private final OrderRepository orderRepository;
 
-    // TODO 사용자 권한에 따른 verify 절차 필요
     public Page<OrderResponse> search(SearchCondition condition, String username, String userRole, Pageable pageable) {
         if (pageable.getPageSize() < 0 || pageable.getPageNumber() < 0)
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "페이지 사이즈와 번호는 0 이상이어야합니다.");
@@ -35,7 +34,6 @@ public class OrderQueryService {
         };
     }
 
-    // TODO username or userId로 배송 id, 업체 id 조회 해야함
     public OrderDetailResponse findById(UUID id, String userRole, String username) {
         return switch (userRole) {
             case "MASTER" -> orderRepository.findById(id)

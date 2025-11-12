@@ -21,7 +21,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-// TODO USER 권한에 따른 인가 로직 필요
 public class OrderCommandService {
     private final OrderRepository orderRepository;
     private final RabbitTemplate rabbitTemplate;

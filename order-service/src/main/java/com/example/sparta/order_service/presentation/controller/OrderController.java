@@ -22,12 +22,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/orders")
 @RequiredArgsConstructor
-// TODO GlobalExceptionHandler 구현
 public class OrderController {
     private final OrderCommandService commandService;
     private final OrderQueryService queryService;
 
-    // TODO Principal 객체를 받아서 userEmail 할당해주기
     @PostMapping
     public ResponseEntity<OrderCreateResponse> create(@RequestBody @Valid OrderRequest orderRequest,
                                                       @RequestHeader("X-USERNAME") String username,
@@ -37,6 +35,7 @@ public class OrderController {
                 .body(commandService.create(orderRequest, username, userRole, userId));
     }
 
+    // TODO 헤더에 hubId, deliveryId 등 식별 값 고려
     @GetMapping
     public ResponseEntity<Page<OrderResponse>> search(SearchCondition condition, Pageable pageable, HttpServletRequest request) {
         String username = request.getHeader("X-USERNAME");
