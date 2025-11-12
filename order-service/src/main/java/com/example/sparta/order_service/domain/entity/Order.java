@@ -143,6 +143,10 @@ public class Order extends BaseEntity {
         this.status = status;
     }
 
+    public void addHistory(OrderHistory orderHistory) {
+        orderHistories.add(orderHistory);
+    }
+
     public OrderDetailResponse toDetailResponse() {
         return OrderDetailResponse.builder()
                 .deliveryMessage(deliveryMessage)
