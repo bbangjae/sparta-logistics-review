@@ -7,7 +7,6 @@ import com.example.sparta.product_service.dto.ProductResponseDto;
 import com.example.sparta.product_service.dto.ProductUpdateRequestDto;
 import com.example.sparta.product_service.dto.ProductUpdateResponseDto;
 import com.example.sparta.product_service.service.ProductService;
-import com.example.sparta.product_service.client.UserClient;
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +35,6 @@ import java.util.UUID;
 public class ProductController {
     
     private final ProductService productService;
-    private final UserClient userClient;
     
     /**
      * 상품 목록 조회/검색 API

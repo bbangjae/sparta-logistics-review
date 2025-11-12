@@ -7,7 +7,6 @@ import com.example.sparta.company_service.dto.CompanyResponseDto;
 import com.example.sparta.company_service.dto.CompanyUpdateRequestDto;
 import com.example.sparta.company_service.dto.CompanyUpdateResponseDto;
 import com.example.sparta.company_service.service.CompanyService;
-import com.example.sparta.company_service.client.UserClient;
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,6 @@ import java.util.UUID;
 public class CompanyController {
 
     private final CompanyService companyService;
-    private final UserClient userClient;
 
     /**
      * 업체 목록 조회 및 검색 API
