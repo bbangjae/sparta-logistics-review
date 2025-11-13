@@ -1,4 +1,4 @@
-description = 'hub Service for sparta Project'
+description = 'hub-route Service for sparta Project'
 
 dependencies {
 	implementation project(':common')
