@@ -10,3 +10,8 @@ spring:
       discovery:
         enabled: true
         service-id: config-server
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE} # Docker Compose에서 주입받음

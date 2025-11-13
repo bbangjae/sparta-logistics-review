@@ -49,3 +49,5 @@ env.properties
 
 # Lock files
 *.lock
+
+/postgres-data-volumes/**

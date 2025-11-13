@@ -1,7 +1,7 @@
 package com.example.sparta.order_service.domain.entity;
 
 import com.example.sparta.common.model.BaseEntity;
-import com.example.sparta.order_service.application.event.OrderCreateEvent;
+import com.example.sparta.order_service.application.dto.message.OrderCreatedMessage;
 import com.example.sparta.order_service.presentation.dto.request.OrderLineRequest;
 import com.example.sparta.order_service.presentation.dto.request.OrderUpdateRequest;
 import com.example.sparta.order_service.presentation.dto.response.OrderCreateResponse;
@@ -26,15 +26,19 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID orderId;
     private UUID deliveryId;
-    private UUID hubId;
+    private UUID originHubId;
+    private UUID destinationHubId;
+    private UUID currentHubId;
     @Column(nullable = false)
-    private String userEmail;
+    private UUID userId;
+    @Column(nullable = false)
+    private String username;
     @Column(nullable = false)
     private Long totalAmount;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
+    @Column(length = 100)
     private String deliveryMessage;
-    private Integer deliveryFee;
     @Column(nullable = false)
     private LocalDateTime dueDate;
     private String representativeProductName;
@@ -74,13 +78,16 @@ public class Order extends BaseEntity {
     private List<OrderHistory> orderHistories = new ArrayList<>();
 
     @Builder
-    public Order(UUID orderId, String userEmail, Long totalAmount, OrderStatus status, String deliveryMessage, Integer deliveryFee, LocalDateTime dueDate, String representativeProductName, int orderLineCount, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories) {
+    public Order(UUID orderId, UUID deliveryId, UUID originHubId, UUID destinationHubId, UUID currentHubId, String username, Long totalAmount, OrderStatus status, String deliveryMessage, LocalDateTime dueDate, String representativeProductName, int orderLineCount, ShippingInfo originInfo, ShippingInfo recipientInfo, List<OrderLine> orderLines, List<OrderHistory> orderHistories) {
         this.orderId = orderId;
-        this.userEmail = userEmail;
+        this.deliveryId = deliveryId;
+        this.originHubId = originHubId;
+        this.destinationHubId = destinationHubId;
+        this.currentHubId = currentHubId;
+        this.username = username;
         this.totalAmount = totalAmount;
         this.status = status;
         this.deliveryMessage = deliveryMessage;
-        this.deliveryFee = deliveryFee;
         this.dueDate = dueDate;
         this.representativeProductName = representativeProductName;
         this.orderLineCount = orderLineCount;
@@ -90,14 +97,13 @@ public class Order extends BaseEntity {
         this.orderHistories = orderHistories;
     }
 
-
     public OrderCreateResponse toCreateResponse() {
         return OrderCreateResponse.builder()
                 .orderId(orderId)
                 .deliveryMessage(deliveryMessage)
                 .totalAmount(totalAmount)
                 .orderDate(getCreatedAt())
-                .orderedBy(userEmail)
+                .orderedBy(username)
                 .state(status)
                 .originInfo(originInfo.toResponse())
                 .recipientInfo(recipientInfo.toResponse())
@@ -105,12 +111,13 @@ public class Order extends BaseEntity {
                 .build();
     }
 
-    public void setUserEmailToCreate(String email) {
-        userEmail = email;
+    public void setUserInfoToCreate(String username, UUID userId) {
+        this.username = username;
+        this.userId = userId;
     }
 
     public void update(OrderUpdateRequest request) {
-        userEmail = request.userEmail();
+        username = request.userEmail();
         status = request.status();
         deliveryMessage = request.deliveryMessage();
         dueDate = request.dueDate();
@@ -124,8 +131,8 @@ public class Order extends BaseEntity {
         orderLineCount = orderLines.size();
     }
 
-    public boolean isPreparing() {
-        return status == OrderStatus.PAYMENT_PENDING || status == OrderStatus.PREPARING_FOR_SHIPMENT;
+    public boolean isShipped() {
+        return status != OrderStatus.PAYMENT_PENDING && status != OrderStatus.PREPARING_FOR_SHIPMENT;
     }
 
     public void assignDeliveryId(UUID deliveryId) {
@@ -136,12 +143,16 @@ public class Order extends BaseEntity {
         this.status = status;
     }
 
+    public void addHistory(OrderHistory orderHistory) {
+        orderHistories.add(orderHistory);
+    }
+
     public OrderDetailResponse toDetailResponse() {
         return OrderDetailResponse.builder()
                 .deliveryMessage(deliveryMessage)
                 .totalAmount(totalAmount)
                 .orderDate(getCreatedAt())
-                .orderedBy(userEmail)
+                .orderedBy(username)
                 .state(status)
                 .originInfo(originInfo.toResponse())
                 .recipientInfo(recipientInfo.toResponse())
@@ -149,17 +160,11 @@ public class Order extends BaseEntity {
                 .build();
     }
 
-    public OrderCreateEvent toEvent() {
-        return OrderCreateEvent.builder()
+    public OrderCreatedMessage toMessage() {
+        return OrderCreatedMessage.builder()
                 .orderId(orderId)
+                .originAddress(originInfo.toResponse().address())
                 .destinationAddress(recipientInfo.toResponse().address())
-                .recipientName(recipientInfo.toResponse().name())
-                // TODO Order Entity에 slackId도 넣어야할지 고려
-                .recipientSlackId("tempSlackId")
-                // TODO 배송 생성 request에 hubId가 필요한지 논의
-                .originHubId(UUID.randomUUID())
-                .destinationHubId(UUID.randomUUID())
-                .orderLines(orderLines.stream().map(OrderLine::toResponse).toList())
                 .build();
     }
 }
