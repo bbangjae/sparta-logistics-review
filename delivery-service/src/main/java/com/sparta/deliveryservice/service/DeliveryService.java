@@ -13,7 +13,9 @@ import com.sparta.deliveryservice.domain.dto.request.DeliveryCreateRequest;
 import com.sparta.deliveryservice.dto.request.DeliverySearchCriteria;
 import com.sparta.deliveryservice.dto.response.DeliveryDetailResponse;
 import com.sparta.deliveryservice.dto.response.DeliverySummaryResponse;
+import com.sparta.deliveryservice.exception.BusinessException;
 import com.sparta.deliveryservice.exception.EntityNotFoundException;
+import com.sparta.deliveryservice.exception.SystemException;
 import com.sparta.deliveryservice.producer.RabbitMQProducer;
 import com.sparta.deliveryservice.producer.RouteRequestMQProducer;
 import com.sparta.deliveryservice.producer.dto.*;
@@ -61,63 +63,118 @@ public class DeliveryService {
      * TDD 성공 시나리오를 통과하기 위한 실제 구현
      */
     @Transactional
-//    public void createDelivery(DeliveryCreateRequest request) {
-    public void createDelivery(RouteResponseEvent event, String correlationId) throws JsonProcessingException {
+    public void createDelivery(RouteResponseEvent event, String correlationId) {
+        try {
+            UUID uuid_correlationId = UUID.fromString(correlationId);
+            DeliveryCreateRequest request = deliveryAsyncManager.getPendingRequest(uuid_correlationId);
 
-        // 1. B. 허브/경로 서비스 호출
-//        List<RouteInfoResponse> routes = hubRouteServiceClient.getRoutes(
-//                request.getOriginHubId(), request.getDestinationHubId()
-//        );
+            if (request == null) {
+                // 비즈니스 예외 - 요청 없음
+                throw new BusinessException("요청 정보 없음: correlationId=" + correlationId);
+            }
 
-        // 방어 코드
-//        if (routes == null || routes.isEmpty()) {
-//             // 나중에 custom Exception 을 만들어주면 더 좋음
-//            throw new IllegalArgumentException("유효한 배송 경로를 찾을 수 없습니다.");
-//        }
+            List<RouteInfoResponse> routes = event.getSegments().stream()
+                    .map(SegmentResponse::toRouteInfoResponse)
+                    .toList();
 
-        // RPC 패턴
-//        List<RouteInfoResponse> routes = routeRequestMQProducer.sendRouteRequestEvent(request.getOriginHubId(), request.getDestinationHubId());
+            if (routes.isEmpty()) {
+                // 비즈니스 예외 - 허브 경로 없음
+                throw new BusinessException("허브 경로를 찾을 수 없습니다.");
+            }
 
-        List<RouteInfoResponse> routes = event.getSegments().stream().map(SegmentResponse::toRouteInfoResponse).toList();
+            // [AI 서비스 호출] - 외부 오류는 시스템 예외
+            EtaPredictResponse aiResponse;
+            try {
+                aiResponse = aiServiceClient.calculateEta(new EtaPredictRequest(routes));
+            } catch (Exception ex) {
+                throw new SystemException("AI 서비스 호출 실패", ex);
+            }
 
-        UUID uuid_correlationId = UUID.fromString(correlationId);
-        DeliveryCreateRequest request = deliveryAsyncManager.getPendingRequest(uuid_correlationId);
+            // DB 저장
+            Delivery newDelivery = Delivery.createDelivery(
+                    request, routes, aiResponse.getEstimatedArrivalTime()
+            );
 
-        if (request == null) {
-            log.warn("요청 정보 없음: correlationId={}", uuid_correlationId);
-            return;
+            deliveryRepository.save(newDelivery);
+
+            // outbox 등록
+            DeliveryCreatedEvent createdEvent = new DeliveryCreatedEvent(
+                    newDelivery.getDeliveryId(),
+                    newDelivery.getOrderId(),
+                    newDelivery.getOriginHubId(),
+                    newDelivery.getDestinationHubId()
+            );
+
+            String payload = new ObjectMapper().writeValueAsString(createdEvent);
+            outboxEventRepository.save(new OutboxEvent("DeliveryCreatedEvent", payload));
+
+            log.info("배송 생성 완료 및 아웃박스 저장 완료: {}", newDelivery.getDeliveryId());
+        } catch (BusinessException e) {
+            log.warn("비즈니스 예외 발생: {}", e.getMessage());
+            throw e; // 사가에서 catch (BusinessException)로 분기
+        } catch (Exception e) {
+            log.error("시스템 예외 발생: {}", e.getMessage());
+            throw new SystemException("배송 생성 중 시스템 오류 발생", e); // DLQ 경로로 전달
         }
-
-        // 2. F. AI 서비스 호출
-        EtaPredictRequest aiRequest = new EtaPredictRequest(routes);
-        EtaPredictResponse aiResponse = aiServiceClient.calculateEta(aiRequest);
-
-        // 3. 도메인 객체에게 생성을 위임
-        Delivery newDelivery = Delivery.createDelivery(
-                request,
-                routes,
-                aiResponse.getEstimatedArrivalTime());
-
-        // 4. db 저장
-         deliveryRepository.save(newDelivery);
-
-
-        /**
-         * 테스트 필요
-         */
-        DeliveryCreatedEvent createdEvent = new DeliveryCreatedEvent(
-                newDelivery.getDeliveryId(),
-                newDelivery.getOrderId(),
-                newDelivery.getOriginHubId(),
-                newDelivery.getDestinationHubId()
-        );
-//        rabbitMQProducer.sendDeliveryCreatedEvent(createdEvent);
-//        eventPublisher.publishEvent(createdEvent);
-        String payload = new ObjectMapper().writeValueAsString(createdEvent);
-        outboxEventRepository.save(new OutboxEvent("DeliveryCreatedEvent", payload));
-
-        log.info("아웃박스에 이벤트 저장 완료: {}", createdEvent.getDeliveryId());
     }
+//    @Transactional
+////    public void createDelivery(DeliveryCreateRequest request) {
+//    public void createDelivery(RouteResponseEvent event, String correlationId) throws JsonProcessingException {
+//
+//        // 1. B. 허브/경로 서비스 호출
+////        List<RouteInfoResponse> routes = hubRouteServiceClient.getRoutes(
+////                request.getOriginHubId(), request.getDestinationHubId()
+////        );
+//
+//        // 방어 코드
+////        if (routes == null || routes.isEmpty()) {
+////             // 나중에 custom Exception 을 만들어주면 더 좋음
+////            throw new IllegalArgumentException("유효한 배송 경로를 찾을 수 없습니다.");
+////        }
+//
+//        // RPC 패턴
+////        List<RouteInfoResponse> routes = routeRequestMQProducer.sendRouteRequestEvent(request.getOriginHubId(), request.getDestinationHubId());
+//
+//        List<RouteInfoResponse> routes = event.getSegments().stream().map(SegmentResponse::toRouteInfoResponse).toList();
+//
+//        UUID uuid_correlationId = UUID.fromString(correlationId);
+//        DeliveryCreateRequest request = deliveryAsyncManager.getPendingRequest(uuid_correlationId);
+//
+//        if (request == null) {
+//            log.warn("요청 정보 없음: correlationId={}", uuid_correlationId);
+//            return;
+//        }
+//
+//        // 2. F. AI 서비스 호출
+//        EtaPredictRequest aiRequest = new EtaPredictRequest(routes);
+//        EtaPredictResponse aiResponse = aiServiceClient.calculateEta(aiRequest);
+//
+//        // 3. 도메인 객체에게 생성을 위임
+//        Delivery newDelivery = Delivery.createDelivery(
+//                request,
+//                routes,
+//                aiResponse.getEstimatedArrivalTime());
+//
+//        // 4. db 저장
+//         deliveryRepository.save(newDelivery);
+//
+//
+//        /**
+//         * 테스트 필요
+//         */
+//        DeliveryCreatedEvent createdEvent = new DeliveryCreatedEvent(
+//                newDelivery.getDeliveryId(),
+//                newDelivery.getOrderId(),
+//                newDelivery.getOriginHubId(),
+//                newDelivery.getDestinationHubId()
+//        );
+////        rabbitMQProducer.sendDeliveryCreatedEvent(createdEvent);
+////        eventPublisher.publishEvent(createdEvent);
+//        String payload = new ObjectMapper().writeValueAsString(createdEvent);
+//        outboxEventRepository.save(new OutboxEvent("DeliveryCreatedEvent", payload));
+//
+//        log.info("아웃박스에 이벤트 저장 완료: {}", createdEvent.getDeliveryId());
+//    }
 
     /**
      * [GREEN] Flow 3-1: 최종 담당자 배정
