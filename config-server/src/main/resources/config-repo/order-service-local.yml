@@ -1,5 +1,5 @@
 server:
-  port: ${ORDER_SERVICE_PORT}
+  port: 9001
 
 management:
   endpoints:
@@ -9,7 +9,7 @@ management:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/order_db
+    url: jdbc:postgresql://postgres-db-order:5432/order_db
     username: postgres
     password: 123
   h2:
@@ -18,26 +18,30 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
   rabbitmq:
-    host: localhost
+    host: ${RABBIT_HOST:rabbitmq-server}
     port: 5672
-    username: ${RABBIT_USERNAME:guest}
-    password: ${RABBIT_PASSWORD:guest}
+    username: ${RABBIT_USERNAME:your_rabbitmq_user}
+    password: ${RABBIT_PASSWORD:your_rabbitmq_password}
   cache:
     type: redis
     redis:
       time-to-live: 3600s
   data:
     redis:
-      host: localhost
+      host: ${REDIS_HOST:redis-server}
       port: 6379
 
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE}
-    register-with-eureka: true
-    fetch-registry: true
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: ${EUREKA_DEFAULT_ZONE}
+#    register-with-eureka: true
+#    fetch-registry: true
 
 mq:
   order:
