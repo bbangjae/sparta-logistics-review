@@ -1,4 +1,4 @@
-package com.example.sparta.hub_service.config;
+package com.example.sparta.common.config;
 
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
