@@ -370,7 +370,8 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 
 ## 시스템 아키텍처 다이어그램
 
-<img width="2408" height="1535" alt="image" src="https://github.com/user-attachments/assets/b6198183-a47c-4ecf-8dc8-7a715e0c78ae" />
+<img width="979" height="633" alt="스크린샷 2025-11-13 오후 3 32 16" src="https://github.com/user-attachments/assets/2e091f87-59a9-4a28-b2ed-4e17dece9117" />
+
 
 
 
