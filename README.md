@@ -4,7 +4,7 @@
 
 전국 17개 광역 물류 허브를 연결하는 엔터프라이즈급 마이크로서비스 아키텍처 프로젝트입니다.
 
----
+ 
 
 # 목차
 
@@ -78,7 +78,7 @@
 ✅ **DDD + 헥사고날 아키텍처**: 도메인 중심 설계  
 ✅ **QueryDSL**: 타입 안전 동적 쿼리  
 
----
+ 
 
 #  개발 환경
 
@@ -136,7 +136,7 @@ sparta_logistics/
 └── README.md                   # 프로젝트 문서
 ```
 
----
+ 
 
 ##  아키텍처 설계
 
@@ -206,7 +206,7 @@ sparta_logistics/
 - Hub Route Service → Delivery Service (경로 응답)
 - Delivery Service → Order Service (배송 상태 업데이트)
 
----
+ 
 
 # 프로젝트 실행 가이드
 
@@ -362,7 +362,7 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 - **Hub Route Service**: 272개 허브 간 연결 자동 생성 (17 × 16)
 
 
----
+ 
 
 # 설계 산출물
 
@@ -421,14 +421,14 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 ```
 
 
----
+ 
 
 # Conventions
 
 [팀 개발 규칙 및 가이드](team-convention.md)
 
 
----
+ 
 
 # 트러블슈팅
 
@@ -442,7 +442,7 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 - POST /orders는 PENDING 상태의 응답만 즉시 반환하고, 백그라운드에서 RabbitMQ로 실제 처리를 위임
 - 클라이언트(App/Web)는 이 orderId로 GET /orders/{id}를 폴링하여 최종 상태(PREPARING 등)를 확인하도록 API 명세를 재정의했습니다.
 
----
+ 
 
 ## 2. 발행/응답 시, 비동기 작업의 독립성으로 인한 문제 발생 → 발행/응답의 신뢰성 보장
 
@@ -480,7 +480,7 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
   - 허브 응답 메시지를 받아 **배달 상태를 변경**하는 트랜잭션 내부에서, 주문 도메인으로 보낼 **응답 이벤트를 Outbox 테이블에 함께 기록**하도록 로직을 변경했습니다.
   - 이로써 **배달 상태 변경**과 **응답 이벤트 기록**이 **단일 트랜잭션**으로 원자성을 보장하게 되어, 후속 이벤트 발행의 신뢰성을 완벽하게 확보했습니다.
 
----
+ 
 
 ## 3. Circuit Breaker 패턴 도입
 
@@ -492,7 +492,7 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 - 외부 서비스 장애 시 격리 조치
 - 구체적인 예외 처리를 통해 404, 400 등의 예외는 무시하며 예외별 다른 응답으로 UX 개선
 
----
+ 
 
 ## 4. 경로 탐색 알고리즘 선택
 
@@ -505,7 +505,7 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 - **Redis + DB 캐싱 구조**를 도입해 경로가 변하지 않는 반복 요청의 응답 속도를 크게 향상.
 - 가중치를 요청 단위로 동적으로 반영할 수 있어 유연성과 성능을 동시에 확보함.
 
----
+ 
 
 # 회고
 
@@ -523,7 +523,7 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 ### 1.4 효과적인 협업 문화
 - 첫 MSA 프로젝트임에도 팀원들 간의 적극적인 코드 리뷰와 피드백을 통해 복잡한 구조를 함께 이해하고 개선해 나갈 수 있었습니다. 특히 서비스가 분리된 환경에서 협업의 중요성을 몸소 체감했으며, 혼자였다면 구조와 흐름을 이해하는 데 훨씬 더 오래 걸렸을 것입니다.
 
----
+ 
 
 ## 2. 현재 시스템의 한계와 이를 발전시키기 위한 계획
 
@@ -567,7 +567,6 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 - 응답 시간 SLA 정의 및 모니터링
 - 데이터베이스 쿼리 최적화 및 인덱싱 전략 수립
 
----
 
 ## 3. 협업 시 아쉽거나 부족했던 부분
 
@@ -586,13 +585,12 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 ### 3.5 코드 리뷰 프로세스
 - 코드 리뷰가 이루어지긴 했지만, 일정에 쫓겨 형식적으로 진행된 경우도 있었습니다. 체크리스트를 만들고 리뷰 기준을 명확히 했다면 코드 품질을 더 높일 수 있었을 것입니다.
 
----
 
 #  팀원 소개
 
 | 팀원  | 깃허브                                          | 담당 서비스                              |
 |-----|----------------------------------------------|--------------------------------------|
-| 권용은 | [@dnjsals45](https://github.com/dnjsals45)   | User, AI Service 개발 및 테스트코드 작성     |
+| 권용은 | [@rlooko](https://github.com/rlooko)   | User, AI Service 개발 및 테스트코드 작성     |
 | 변영재 | [@bbangjae](https://github.com/bbangjae)     | Hub, Hub Route Service 개발 및 테스트코드 작성 |
 | 이세준 | [@hello22433](https://github.com/hello22433) | Delivery Service 개발 및 테스트코드 작성     |
 | 전우선 | [@wooxexn](https://github.com/wooxexn)       | Product, Company Service 개발 및 테스트코드 작성 |
