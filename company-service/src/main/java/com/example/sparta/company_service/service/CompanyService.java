@@ -12,6 +12,8 @@ import com.example.sparta.company_service.exception.CompanyNotFoundException;
 import com.example.sparta.company_service.repository.CompanyRepository;
 import com.example.sparta.common.exception.BusinessException;
 import com.example.sparta.common.exception.ErrorCode;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -66,11 +68,14 @@ public class CompanyService implements CompanyQueryService {
      * 
      * 타입 안전성을 보장하며, 검색 조건의 캡슐화를 통해
      * 응집도를 높이고 결합도를 낮춥니다.
+     * Circuit Breaker와 Retry 패턴을 적용하여 데이터베이스 장애 시 복구력을 제공합니다.
      * 
      * @param searchCriteria 검색 조건
      * @param pageable 페이지네이션 정보
      * @return 검색 결과
      */
+    @CircuitBreaker(name = "companyService", fallbackMethod = "searchCompaniesFallback")
+    @Retry(name = "companyService")
     @Override
     public Page<CompanyResponseDto> searchCompanies(CompanySearchCriteria searchCriteria, Pageable pageable) {
         log.debug("업체 검색 실행 - 조건: {}", searchCriteria);
@@ -101,11 +106,14 @@ public class CompanyService implements CompanyQueryService {
      * 
      * 논리적으로 삭제된 업체는 조회 대상에서 제외되며,
      * 존재하지 않는 업체 ID에 대해서는 CompanyNotFoundException을 발생시킵니다.
+     * Circuit Breaker와 Retry 패턴을 적용하여 데이터베이스 장애 시 복구력을 제공합니다.
      * 
      * @param companyId 조회할 업체 ID
      * @return 업체 상세 정보
      * @throws CompanyNotFoundException 업체를 찾을 수 없는 경우 (404 Not Found)
      */
+    @CircuitBreaker(name = "companyService", fallbackMethod = "getCompanyByIdFallback")
+    @Retry(name = "companyService")
     @Override
     public CompanyResponseDto getCompanyById(UUID companyId) {
         log.debug("업체 상세 조회 요청 - companyId: {}", companyId);
@@ -343,6 +351,43 @@ public class CompanyService implements CompanyQueryService {
         } catch (Exception e) {
             log.error("업체 논리 삭제 중 오류 발생 - companyId: {}, 오류: {}", companyId, e.getMessage(), e);
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "업체 삭제 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    /**
+     * 업체 목록 조회 실패 시 fallback 메서드
+     */
+    public Page<CompanyResponseDto> searchCompaniesFallback(CompanySearchCriteria searchCriteria, Pageable pageable, Exception ex) {
+        log.warn("업체 목록 조회 실패 - 조건: {}, 예외: {}", searchCriteria, ex.getClass().getSimpleName(), ex);
+        
+        String message = getDatabaseFailureMessage("업체 목록 조회", ex);
+        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, message);
+    }
+    
+    /**
+     * 업체 상세 조회 실패 시 fallback 메서드
+     */
+    public CompanyResponseDto getCompanyByIdFallback(UUID companyId, Exception ex) {
+        log.warn("업체 상세 조회 실패 - companyId: {}, 예외: {}", companyId, ex.getClass().getSimpleName(), ex);
+        
+        String message = getDatabaseFailureMessage("업체 상세 조회", ex);
+        throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, message);
+    }
+    
+    /**
+     * 데이터베이스 예외 타입별 상세 메시지 생성
+     */
+    private String getDatabaseFailureMessage(String operation, Exception ex) {
+        if (ex instanceof java.sql.SQLTimeoutException || ex instanceof org.springframework.dao.QueryTimeoutException) {
+            return String.format("%s 중 데이터베이스 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.", operation);
+        } else if (ex instanceof java.net.ConnectException || ex instanceof org.hibernate.exception.JDBCConnectionException) {
+            return String.format("%s 중 데이터베이스 연결에 실패했습니다. 시스템 관리자에게 문의해주세요.", operation);
+        } else if (ex instanceof org.springframework.dao.TransientDataAccessException) {
+            return String.format("%s 중 일시적인 데이터베이스 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", operation);
+        } else if (ex instanceof org.springframework.dao.DataAccessException) {
+            return String.format("%s 중 데이터베이스 오류가 발생했습니다. 시스템 관리자에게 문의해주세요.", operation);
+        } else {
+            return String.format("%s 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.", operation);
         }
     }
 }
