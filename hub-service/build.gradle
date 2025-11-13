@@ -1,4 +1,4 @@
-description = 'order Service for sparta Project'
+description = 'hub Service for sparta Project'
 
 dependencies {
 	implementation project(':common')

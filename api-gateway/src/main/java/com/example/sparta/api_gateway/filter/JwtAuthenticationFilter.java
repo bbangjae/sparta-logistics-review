@@ -59,6 +59,9 @@ public class JwtAuthenticationFilter implements GlobalFilter {
                     String userId = claims.get("user_id", String.class);
                     String username = claims.get("username", String.class);
                     String role = claims.get("role", String.class);
+                    String hubId = claims.get("hub_id", String.class);
+                    String companyId = claims.get("company_id", String.class);
+                    String deliveryId = claims.get("delivery_id", String.class);
 
                     System.out.println("[JWT Filter] Claims - userId: " + userId
                             + ", username: " + username
@@ -68,6 +71,9 @@ public class JwtAuthenticationFilter implements GlobalFilter {
                             .header("X-USERID", userId)
                             .header("X-USERNAME", username)
                             .header("X-USER-ROLE", role)
+                            .header("X-HUB_ID", hubId)
+                            .header("X-COMPANY_ID", companyId)
+                            .header("X-DELIVERY_ID", deliveryId)
                             .build();
 
                     return chain.filter(exchange.mutate().request(mutated).build());
