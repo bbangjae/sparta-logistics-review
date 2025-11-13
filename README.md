@@ -20,8 +20,6 @@
 - [회고](#회고)
 - [팀원소개](#팀원-소개)
 
----
-
 # 프로젝트 소개
 
 ## 개요
@@ -370,28 +368,26 @@ java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
 
 
 
+
 ## ERD 
+
+<img width="2294" height="1496" alt="erd" src="https://github.com/user-attachments/assets/5adb99a0-26b4-438d-bd34-476461ef8ea7" />
 
 
 ## 시스템 아키텍처 다이어그램
 
-
-## 도메인 모델
-
+<img width="2408" height="1535" alt="image" src="https://github.com/user-attachments/assets/b6198183-a47c-4ecf-8dc8-7a715e0c78ae" />
 
 
----
+
+## 인프라 설계
+
+<img width="928" height="1232" alt="image" src="https://github.com/user-attachments/assets/bad1789c-1a9b-48d1-ac11-f0832f8933fe" />
+
 
 ## API 명세서
 
 [설계 도메인 개요 및 API 명세서](api-docs.md)
-
-
----
-
-## 인프라 설계도
-
-
 
 ## 네트워크 아키텍처
 
