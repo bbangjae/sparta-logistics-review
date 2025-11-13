@@ -2,6 +2,7 @@ package com.sparta.deliveryservice.controller;
 
 import com.sparta.deliveryservice.controller.dto.request.CompanyDriverAssignRequest;
 import com.sparta.deliveryservice.domain.dto.request.DeliveryCreateRequest;
+import com.sparta.deliveryservice.service.DeliveryAsyncManager;
 import com.sparta.deliveryservice.service.DeliveryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.UUID;
 public class DeliveryController {
 
     private final DeliveryService deliveryService;
+    private final DeliveryAsyncManager deliveryAsyncManager;
 
     /**
      * Flow 1: 배송 생성 (Saga 트랜잭션의 시작)
@@ -24,7 +26,8 @@ public class DeliveryController {
     public ResponseEntity<Void> createDelivery(@RequestBody DeliveryCreateRequest request) {
 
         // (TDD 리팩토링: createDelivery가 생성된 ID를 반환하도록 수정하는 것이 좋다)
-        deliveryService.createDelivery(request);
+//        deliveryService.createDeliveryAsync(request);
+        deliveryAsyncManager.createDeliveryAsync(request);
 
         // (임시로 생성 성공 201 Created 반환)
         // (UUID를 반환받는다면: URI location = URI.create("/api/v1/deliveries/" + newDeliveryId);)

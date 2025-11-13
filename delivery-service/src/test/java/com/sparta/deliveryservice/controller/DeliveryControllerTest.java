@@ -5,6 +5,7 @@ import com.sparta.deliveryservice.controller.dto.request.CompanyDriverAssignRequ
 import com.sparta.deliveryservice.domain.dto.request.DeliveryCreateRequest;
 import com.sparta.deliveryservice.exception.EntityNotFoundException;
 import com.sparta.deliveryservice.exception.GlobalExceptionHandler;
+import com.sparta.deliveryservice.service.DeliveryAsyncManager;
 import com.sparta.deliveryservice.service.DeliveryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -46,13 +47,18 @@ class DeliveryControllerTest {
     @MockitoBean // @Service를 '가짜 Bean'으로 대체
     private DeliveryService deliveryService;
 
+
+    @MockitoBean // @Service를 '가짜 Bean'으로 대체
+    private DeliveryAsyncManager deliveryAsyncManager;
+
+
     // (DeliveryRouteService는 이 컨트롤러와 무관하므로 MockBean으로 만들지 않음)
 
     // -----------------------------------------------------------------
     // [TDD] API 테스트: Flow 1 (createDelivery)
     // -----------------------------------------------------------------
     @Nested
-    @DisplayName("POST /api/v1/deliveries (배송 생성)")
+    @DisplayName("POST /v1/delivery/deliveries (배송 생성)")
     class CreateDeliveryTests {
 
         @Test
@@ -67,11 +73,11 @@ class DeliveryControllerTest {
             String requestBodyJson = objectMapper.writeValueAsString(requestDto);
 
             // 1. [Mocking] '가짜' 서비스가 정상 동작하도록 설정
-            doNothing().when(deliveryService).createDelivery(any(DeliveryCreateRequest.class));
+            doNothing().when(deliveryAsyncManager).createDeliveryAsync(any(DeliveryCreateRequest.class));
 
             // --- When (실행) ---
-            // 2. MockMvc로 'POST /api/v1/deliveries' 요청
-            mockMvc.perform(post("/api/v1/deliveries")
+            // 2. MockMvc로 'POST /v1/delivery/deliveries' 요청
+            mockMvc.perform(post("/v1/delivery/deliveries")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBodyJson))
 
@@ -80,7 +86,7 @@ class DeliveryControllerTest {
                     .andDo(print());
 
             // 4. [검증] '가짜' 서비스의 'createDelivery'가 1번 호출되었는지 확인
-            verify(deliveryService, times(1)).createDelivery(any(DeliveryCreateRequest.class));
+            verify(deliveryAsyncManager, times(1)).createDeliveryAsync(any(DeliveryCreateRequest.class));
         }
     }
 
@@ -88,7 +94,7 @@ class DeliveryControllerTest {
     // [TDD] API 테스트: Flow 3-1 (assignCompanyDriver)
     // -----------------------------------------------------------------
     @Nested
-    @DisplayName("PUT /api/v1/deliveries/{id}/assign-company-driver (최종 담당자 배정)")
+    @DisplayName("PUT /v1/delivery/deliveries/{id}/assign-company-driver (최종 담당자 배정)")
     class AssignCompanyDriverTests {
 
         @Test
@@ -107,7 +113,7 @@ class DeliveryControllerTest {
             );
 
             // --- When (실행) ---
-            mockMvc.perform(put("/api/v1/deliveries/{id}/assign-company-driver", deliveryId)
+            mockMvc.perform(put("/v1/delivery/deliveries/{id}/assign-company-driver", deliveryId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBodyJson))
 
@@ -138,7 +144,7 @@ class DeliveryControllerTest {
                     .assignCompanyDriver(eq(deliveryId), any(UUID.class));
 
             // --- When (실행) ---
-            mockMvc.perform(put("/api/v1/deliveries/{id}/assign-company-driver", deliveryId)
+            mockMvc.perform(put("/v1/delivery/deliveries/{id}/assign-company-driver", deliveryId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBodyJson))
 
@@ -166,7 +172,7 @@ class DeliveryControllerTest {
                     .assignCompanyDriver(eq(nonExistentDeliveryId), any(UUID.class));
 
             // --- When (실행) ---
-            mockMvc.perform(put("/api/v1/deliveries/{id}/assign-company-driver", nonExistentDeliveryId)
+            mockMvc.perform(put("/v1/delivery/deliveries/{id}/assign-company-driver", nonExistentDeliveryId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBodyJson))
 
@@ -183,7 +189,7 @@ class DeliveryControllerTest {
     // [TDD] API 테스트: Flow 3-2 (startCompanyDelivery)
     // -----------------------------------------------------------------
     @Nested
-    @DisplayName("PUT /api/v1/deliveries/{id}/start-company-delivery (최종 배송 시작)")
+    @DisplayName("PUT /v1/delivery/deliveries/{id}/start-company-delivery (최종 배송 시작)")
     class StartCompanyDeliveryTests {
 
         @Test
@@ -195,7 +201,7 @@ class DeliveryControllerTest {
             doNothing().when(deliveryService).startCompanyDelivery(deliveryId);
 
             // --- When (실행) ---
-            mockMvc.perform(put("/api/v1/deliveries/{id}/start-company-delivery", deliveryId)
+            mockMvc.perform(put("/v1/delivery/deliveries/{id}/start-company-delivery", deliveryId)
                             .contentType(MediaType.APPLICATION_JSON))
 
                     // --- Then (검증) ---
@@ -218,7 +224,7 @@ class DeliveryControllerTest {
                     .startCompanyDelivery(deliveryId);
 
             // --- When (실행) ---
-            mockMvc.perform(put("/api/v1/deliveries/{id}/start-company-delivery", deliveryId)
+            mockMvc.perform(put("/v1/delivery/deliveries/{id}/start-company-delivery", deliveryId)
                             .contentType(MediaType.APPLICATION_JSON))
 
                     // --- Then (검증) ---
@@ -232,7 +238,7 @@ class DeliveryControllerTest {
     // [TDD] API 테스트: Flow 3-3 (completeDelivery)
     // -----------------------------------------------------------------
     @Nested
-    @DisplayName("PUT /api/v1/deliveries/{id}/complete-delivery (최종 배송 완료)")
+    @DisplayName("PUT /v1/delivery/deliveries/{id}/complete-delivery (최종 배송 완료)")
     class CompleteDeliveryTests {
 
         @Test
@@ -244,7 +250,7 @@ class DeliveryControllerTest {
             doNothing().when(deliveryService).completeDelivery(deliveryId);
 
             // --- When (실행) ---
-            mockMvc.perform(put("/api/v1/deliveries/{id}/complete-delivery", deliveryId)
+            mockMvc.perform(put("/v1/delivery/deliveries/{id}/complete-delivery", deliveryId)
                             .contentType(MediaType.APPLICATION_JSON))
 
                     // --- Then (검증) ---
@@ -267,7 +273,7 @@ class DeliveryControllerTest {
                     .completeDelivery(deliveryId);
 
             // --- When (실행) ---
-            mockMvc.perform(put("/api/v1/deliveries/{id}/complete-delivery", deliveryId)
+            mockMvc.perform(put("/v1/delivery/deliveries/{id}/complete-delivery", deliveryId)
                             .contentType(MediaType.APPLICATION_JSON))
 
                     // --- Then (검증) ---
