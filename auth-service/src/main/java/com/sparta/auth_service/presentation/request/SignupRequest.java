@@ -1,23 +1,16 @@
-package com.sparta.user_service.presentation.request;
+package com.sparta.auth_service.presentation.request;
 
-import com.example.sparta.common.enums.UserRoleEnum;
-import com.sparta.user_service.domain.enums.UserStatusEnum;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.UUID;
 
-
 @Getter
 @Builder
-public class UserCreateRequest {
-
-    private UserRoleEnum role;
-
+public class SignupRequest {
     @NotBlank(message = "이름을 입력해주세요.")
     private String name;
 
@@ -37,10 +30,7 @@ public class UserCreateRequest {
     @NotBlank(message = "Slack ID를 입력해주세요.")
     private String slackId;
 
-    private UserStatusEnum status;
-
     private UUID hubId;
     private UUID companyId;
     private UUID deliveryId;
-
 }

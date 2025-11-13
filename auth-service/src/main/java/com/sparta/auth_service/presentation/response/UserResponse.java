@@ -12,5 +12,8 @@ public class UserResponse {
     private String username;
     private String password;
     private UserRoleEnum role;
+    private UUID hubId;
+    private UUID companyId;
+    private UUID deliveryId;
     private boolean approved;
 }

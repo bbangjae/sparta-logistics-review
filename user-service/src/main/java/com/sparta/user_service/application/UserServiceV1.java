@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -29,17 +30,21 @@ public class UserServiceV1 {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserCreateResponse create(UserCreateRequest signupRequest){
-        String username = signupRequest.getUsername();
-        if(userRepository.findByUsername(username).isPresent()){
-            throw new BusinessException(ErrorCode.DUPLICATED_USER);
-        }
+    @Transactional
+    public UserCreateResponse  create(UserCreateRequest request) {
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        String hashedPassword = passwordEncoder.encode(signupRequest.getPassword());
-        UserEntity user = UserEntity.create(signupRequest, hashedPassword);
-        UserEntity savedUser = userRepository.save(user);
+        UserEntity user = UserEntity.create(request, encodedPassword);
+        userRepository.save(user);
+        return UserCreateResponse.of(user);
+    }
 
-        return UserCreateResponse.of(savedUser);
+    // -------------------------
+    // username으로 조회
+    // -------------------------
+    @Transactional(readOnly = true)
+    public Optional<UserEntity> findByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     @Transactional

@@ -29,20 +29,20 @@ public class UserControllerV1 {
 
     private final PagedResourcesAssembler<UserSearchResponse> assembler;
 
-    // -------------------------
-    // 생성, 수정, 삭제: MASTER 관리자만 가능
-    // -------------------------
-    @PostMapping()
-    public ResponseEntity<UserCreateResponse> create(
-            @RequestHeader("X-USER-ROLE") UserRoleEnum role,
-            @RequestBody @Valid UserCreateRequest signupRequest
-    ){
-        if (role != UserRoleEnum.MASTER) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(userServiceV1.create(signupRequest));
-    }
+//    @PostMapping()
+//    public ResponseEntity<UserCreateResponse> create(
+//            @RequestHeader("X-USER-ROLE") UserRoleEnum role,
+//            @RequestBody @Valid UserCreateRequest signupRequest
+//    ){
+//        if (role != UserRoleEnum.MASTER) {
+//            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+//        }
+//        return ResponseEntity.status(HttpStatus.CREATED).body(userServiceV1.create(signupRequest));
+//    }
 
+    // -------------------------
+    // 수정, 삭제: MASTER 관리자만 가능
+    // -------------------------
     @PatchMapping("/{userId}")
     public ResponseEntity<UserUpdateResponse> updateUser(
             @RequestHeader("X-USER-ROLE") UserRoleEnum role,
