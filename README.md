@@ -252,12 +252,6 @@ GEMINI_KEY=
 ```bash
 # PostgreSQL 시작
 docker-compose up -d
-
-# Redis 시작 (별도 docker-compose.yml 필요 시)
-docker run -d -p 6379:6379 --name sparta-redis redis:7-alpine
-
-# RabbitMQ 시작
-docker run -d -p 5672:5672 -p 15672:15672 --name sparta-rabbitmq rabbitmq:3-management
 ```
 
 **접속 정보:**
