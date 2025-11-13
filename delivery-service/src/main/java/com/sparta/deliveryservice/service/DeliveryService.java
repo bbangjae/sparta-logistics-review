@@ -1,22 +1,29 @@
 package com.sparta.deliveryservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.deliveryservice.client.AiServiceClient;
 import com.sparta.deliveryservice.client.HubRouteServiceClient;
 import com.sparta.deliveryservice.client.dto.EtaPredictRequest;
 import com.sparta.deliveryservice.client.dto.EtaPredictResponse;
 import com.sparta.deliveryservice.client.dto.RouteInfoResponse;
 import com.sparta.deliveryservice.domain.Delivery;
+import com.sparta.deliveryservice.domain.OutboxEvent;
 import com.sparta.deliveryservice.domain.dto.request.DeliveryCreateRequest;
 import com.sparta.deliveryservice.dto.request.DeliverySearchCriteria;
 import com.sparta.deliveryservice.dto.response.DeliveryDetailResponse;
 import com.sparta.deliveryservice.dto.response.DeliverySummaryResponse;
 import com.sparta.deliveryservice.exception.EntityNotFoundException;
 import com.sparta.deliveryservice.producer.RabbitMQProducer;
-import com.sparta.deliveryservice.producer.dto.DeliveryCompletedEvent;
+import com.sparta.deliveryservice.producer.RouteRequestMQProducer;
+import com.sparta.deliveryservice.producer.dto.*;
 import com.sparta.deliveryservice.repository.DeliveryRepository;
 import com.sparta.deliveryservice.repository.DeliveryRouteHistoryRepository;
+import com.sparta.deliveryservice.repository.OutboxEventRepository;
 import com.sparta.deliveryservice.repository.specification.DeliverySpecification;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor // @Mock이 주입될 생성자
 @Transactional(readOnly = true)
@@ -40,23 +48,44 @@ public class DeliveryService {
     private final AiServiceClient aiServiceClient;
 //    private final DeliveryEventProducer deliveryEventProducer; // 이벤트 발행기 의존성
     private final RabbitMQProducer rabbitMQProducer;
+    private final RouteRequestMQProducer routeRequestMQProducer;
+
+    // 이벤트 발행기
+    private final ApplicationEventPublisher eventPublisher;
+    private final DeliveryAsyncManager deliveryAsyncManager;
+
+    private final OutboxEventRepository outboxEventRepository;
 
     /**
      * [TDD] Flow 1: 배송 생성 (Flow 1)
      * TDD 성공 시나리오를 통과하기 위한 실제 구현
      */
     @Transactional
-    public void createDelivery(DeliveryCreateRequest request) {
+//    public void createDelivery(DeliveryCreateRequest request) {
+    public void createDelivery(RouteResponseEvent event, String correlationId) throws JsonProcessingException {
 
         // 1. B. 허브/경로 서비스 호출
-        List<RouteInfoResponse> routes = hubRouteServiceClient.getRoutes(
-                request.getOriginHubId(), request.getDestinationHubId()
-        );
+//        List<RouteInfoResponse> routes = hubRouteServiceClient.getRoutes(
+//                request.getOriginHubId(), request.getDestinationHubId()
+//        );
 
         // 방어 코드
-        if (routes == null || routes.isEmpty()) {
-             // 나중에 custom Exception 을 만들어주면 더 좋음
-            throw new IllegalArgumentException("유효한 배송 경로를 찾을 수 없습니다.");
+//        if (routes == null || routes.isEmpty()) {
+//             // 나중에 custom Exception 을 만들어주면 더 좋음
+//            throw new IllegalArgumentException("유효한 배송 경로를 찾을 수 없습니다.");
+//        }
+
+        // RPC 패턴
+//        List<RouteInfoResponse> routes = routeRequestMQProducer.sendRouteRequestEvent(request.getOriginHubId(), request.getDestinationHubId());
+
+        List<RouteInfoResponse> routes = event.getSegments().stream().map(SegmentResponse::toRouteInfoResponse).toList();
+
+        UUID uuid_correlationId = UUID.fromString(correlationId);
+        DeliveryCreateRequest request = deliveryAsyncManager.getPendingRequest(uuid_correlationId);
+
+        if (request == null) {
+            log.warn("요청 정보 없음: correlationId={}", uuid_correlationId);
+            return;
         }
 
         // 2. F. AI 서비스 호출
@@ -64,12 +93,30 @@ public class DeliveryService {
         EtaPredictResponse aiResponse = aiServiceClient.calculateEta(aiRequest);
 
         // 3. 도메인 객체에게 생성을 위임
-        Delivery newDelivery = Delivery.createDelivery(request,
+        Delivery newDelivery = Delivery.createDelivery(
+                request,
                 routes,
                 aiResponse.getEstimatedArrivalTime());
 
         // 4. db 저장
          deliveryRepository.save(newDelivery);
+
+
+        /**
+         * 테스트 필요
+         */
+        DeliveryCreatedEvent createdEvent = new DeliveryCreatedEvent(
+                newDelivery.getDeliveryId(),
+                newDelivery.getOrderId(),
+                newDelivery.getOriginHubId(),
+                newDelivery.getDestinationHubId()
+        );
+//        rabbitMQProducer.sendDeliveryCreatedEvent(createdEvent);
+//        eventPublisher.publishEvent(createdEvent);
+        String payload = new ObjectMapper().writeValueAsString(createdEvent);
+        outboxEventRepository.save(new OutboxEvent("DeliveryCreatedEvent", payload));
+
+        log.info("아웃박스에 이벤트 저장 완료: {}", createdEvent.getDeliveryId());
     }
 
     /**
@@ -134,7 +181,8 @@ public class DeliveryService {
                 delivery.getOrderId(),
                 delivery.getActualDeliveryTime() // 완료된 시간으로 이벤트 생성
         );
-        rabbitMQProducer.sendDeliveryCompletedEvent(event);
+//        rabbitMQProducer.sendDeliveryCompletedEvent(event);
+        eventPublisher.publishEvent(event);
     }
 
     /**
