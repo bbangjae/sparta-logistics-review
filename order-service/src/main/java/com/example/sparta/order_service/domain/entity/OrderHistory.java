@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,21 +20,16 @@ public class OrderHistory {
     private ClaimType claimType;
     @Enumerated(EnumType.STRING)
     private ReasonType reasonType;
-
     private LocalDateTime createdAt;
-    private String createdBy;
-    private LocalDateTime updatedAt;
-    private String updatedBy;
+    private UUID createdBy;
 
     @Builder
-    public OrderHistory(String reasonDetail, ClaimStatus status, ClaimType claimType, ReasonType reasonType, LocalDateTime createdAt, String createdBy, LocalDateTime updatedAt, String updatedBy) {
+    public OrderHistory(String reasonDetail, ClaimStatus status, ClaimType claimType, ReasonType reasonType, LocalDateTime createdAt, UUID createdBy) {
         this.reasonDetail = reasonDetail;
         this.status = status;
         this.claimType = claimType;
         this.reasonType = reasonType;
         this.createdAt = createdAt;
         this.createdBy = createdBy;
-        this.updatedAt = updatedAt;
-        this.updatedBy = updatedBy;
     }
 }

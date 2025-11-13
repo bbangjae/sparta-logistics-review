@@ -68,13 +68,14 @@ public class OrderUnitTests {
     void createOrder_Success() {
         Order order = orderRequest.toEntity();
         String userEmail = "tempUserEmail";
+        String userRole = "tempUserRole";
 
         when(orderRepository.save(any(Order.class)))
                 .thenReturn(order);
 
         ArgumentCaptor<Order> orderArgumentCaptor = ArgumentCaptor.forClass(Order.class);
 
-        OrderCreateResponse createResponse = orderCommandService.create(orderRequest, userEmail);
+        OrderCreateResponse createResponse = orderCommandService.create(orderRequest, userEmail, userRole, UUID.randomUUID());
 
         assertThat(createResponse).isNotNull();
         assertThat(createResponse.totalAmount()).isEqualTo(35000L);
@@ -87,10 +88,11 @@ public class OrderUnitTests {
     @Test
     void createOrder_Fail_DB() {
         String userEmail = "tempUserEmail";
+        String userRole = "tempUserRole";
         when(orderRepository.save(any(Order.class)))
                 .thenThrow(new DataAccessException("Test DB Error") {});
 
-        assertThatThrownBy(() -> orderCommandService.create(orderRequest, userEmail))
+        assertThatThrownBy(() -> orderCommandService.create(orderRequest, userEmail, userRole, UUID.randomUUID()))
                 .isInstanceOf(DataAccessException.class)
                 .hasMessageContaining("Test DB Error");
 
