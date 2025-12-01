@@ -1,592 +1,285 @@
-# Sparta Logistics - MSA 기반 물류 관리 시스템
+# Sparta Logistics 
 
-> Spring Boot 3.5 + Spring Cloud 기반의 대규모 물류 허브 관리 및 배송 최적화 플랫폼
-
-전국 17개 광역 물류 허브를 연결하는 엔터프라이즈급 마이크로서비스 아키텍처 프로젝트입니다.
-
- 
-
-# 목차
-
-- [프로젝트 소개](#프로젝트-소개)
-- [개발 환경](#개발-환경)
-- [프로젝트 구조](#프로젝트-구조)
-- [아키텍처 설계](#아키텍처-설계)
-- [프로젝트 실행 가이드](#프로젝트-실행-가이드)
-- [설계 산출물](#설계-산출물)
-- [API 명세서](#api-명세서)
-- [Conventions](#-conventions)
-- [트러블슈팅](#트러블슈팅)
-- [회고](#회고)
-- [팀원소개](#팀원-소개)
-
-# 프로젝트 소개
-
-## 개요
-
-**Sparta Logistics**는 전국 물류 네트워크를 효율적으로 관리하기 위한 MSA 기반 통합 물류 플랫폼입니다. 
-
-17개 광역시/도 단위의 물류 허브를 중심으로 최적 경로 탐색, 실시간 배송 추적, 재고 관리 등 물류 운영의 전 과정을 자동화합니다.
-
-## 주요 기능
-
-### 허브 관리 (Hub Service)
-- 전국 17개 광역 물류 허브 CRUD
-- 허브 상태 관리 (정상 운영/운영 종료)
-- 좌표 기반 위치 정보 관리 (Haversine 거리 계산)
-- Redis 캐싱으로 조회 성능 최적화
-
-### 경로 최적화 (Hub Route Service)
-- Dijkstra 알고리즘 기반 최단 경로 자동 계산
-- 거리/시간 가중치 선택 가능
-- 계산된 경로 DB 저장 및 Redis 캐싱
-- RabbitMQ를 통한 비동기 경로 조회
-
-### 배송 관리 (Delivery Service)
-- 허브 간 배송 생성 및 추적
-- 배송 상태 실시간 업데이트
-- 경로 정보 자동 연동
-
-### 업체 관리 (Company Service)
-- 공급업체/수요업체 등록 및 관리
-- 업체별 허브 연결 정보
-
-### 주문 관리 (Order Service)
-- 주문 생성 및 배송 요청
-- 주문 상태 추적
-
-### 상품 관리 (Product Service)
-- 상품 카탈로그 관리
-- 재고 관리
-
-### 사용자 인증 (Auth Service)
-- JWT 기반 인증/인가
-- 역할 기반 접근 제어 (RBAC)
-
-### AI 서비스 (AI Service)
-- Gemini AI 연동
-- 배송 경로 추천 및 분석
-
-## 기술적 특징
-
-✅ **MSA 아키텍처**: 13개 독립 마이크로서비스로 구성  
-✅ **서비스 디스커버리**: Netflix Eureka 기반 동적 서비스 탐색  
-✅ **중앙 설정 관리**: Spring Cloud Config Server  
-✅ **API Gateway**: 단일 진입점 및 라우팅  
-✅ **분산 캐싱**: Redis 활용 다단계 캐싱 전략  
-✅ **비동기 메시징**: RabbitMQ 기반 이벤트 드리븐 아키텍처  
-✅ **DDD + 헥사고날 아키텍처**: 도메인 중심 설계  
-✅ **QueryDSL**: 타입 안전 동적 쿼리  
-
- 
-
-#  개발 환경
-
-| 분류                  | 상세                                                                         |
-|---------------------|----------------------------------------------------------------------------|
-| **Back-End**        | Java 17, Spring Boot 3.5.7, Spring Cloud 2025.0.0, Spring Data JPA 3.5.5, QueryDSL 5.0.0 (Jakarta), Spring Security 6.5.6 |
-| **Database**        | PostgreSQL 18.0, Redis 7.x (Lettuce)                                      |
-| **Messaging**       | RabbitMQ 3.x (Spring AMQP)                                                 |
-| **Build Tool**      | Gradle 8.10 (Multi-Module)                                                 |
-| **Infra**           | Docker Compose, Spring Cloud Config, Netflix Eureka, Spring Cloud Gateway |
-| **Open API**        | Google GenAI API, Naver Map API                                            |
-| **Testing**         | JUnit5, Mockito, TestContainers                                            |
-| **Version Control** | Git, GitHub                                                                |
-| **API Docs**        | Swagger UI                                                                 |
-| **Communication**   | OpenFeign, RestTemplate                                                    |
-| **Monitoring**      | Spring Actuator, Logback                                                   |
-| **Tools**           | Lombok, Spring Dotenv                                                      |
-
+## 프로젝트 개요
+- **기간**: 2025.10.31 ~ 2025.11.13 (2주)
+- **팀 구성**: 5명 (백엔드 개발자)
+- **담당 역할**: Hub Service, Hub Route Service 설계 및 구현
+- **프로젝트 성격**: MSA 기반 물류 관리 시스템 
 
 ---
 
-# 프로젝트 구조
+## 소개
+**MSA 기반 물류 관리 시스템** 프로젝트의 전반적인 내용과 제가 담당했던 핵심 역할을 정리하고, 개발 과정에서의 기술적 회고를 작성하였습니다.
 
-## 전체 디렉토리 구조
+기존 Repository 주소: https://github.com/sparta-logitics/sparta_logistics
 
-```
-sparta_logistics/
-├── common/                      # 공통 모듈
-│   ├── config/                 # 공통 설정 (Redis, QueryDSL, Cache)
-│   ├── exception/              # 공통 예외 처리
-│   └── util/                   # 공통 유틸리티
-│
-├── config-server/              # Spring Cloud Config Server
-│   └── src/main/resources/
-│       └── config-repo/        # Git 기반 설정 저장소
-│
-├── eureka-server/              # Netflix Eureka Server
-│
-├── api-gateway/                # Spring Cloud Gateway
-│
-├── auth-service/               # 인증/인가 서비스
-├── user-service/               # 사용자 관리 서비스
-├── hub-service/                # 허브 관리 서비스
-├── hub-route-service/          # 허브 경로 서비스
-├── company-service/            # 업체 관리 서비스
-├── product-service/            # 상품 관리 서비스
-├── order-service/              # 주문 관리 서비스
-├── delivery-service/           # 배송 관리 서비스
-├── ai-service/                 # AI 서비스
-│
-├── build.gradle                # 루트 빌드 설정
-├── settings.gradle             # 멀티모듈 설정
-├── docker-compose.yml          # 인프라 컨테이너 설정
-├── .env                        # 환경 변수
-└── README.md                   # 프로젝트 문서
-```
+---
 
+## 담당 영역
+- **Hub Service**: 물류 허브 관리 서비스
+- **Hub Route Service**: 허브 간 경로 계산 및 관리 서비스
+
+---
+
+## 핵심 구현 기술
+
+### 1. MSA & OpenFeign
+- 물류 허브(Hub)와 이동 경로(Hub Route) 도메인을 독립적인 **마이크로서비스로 분리**하여 유연한 확장성 확보
+- **Eureka Service Discovery**를 통해 동적으로 서비스 인스턴스를 탐색하고 관리
+- **OpenFeign**을 도입하여 서비스 간의 통신을 인터페이스 기반으로 추상화함으로써 결합도를 낮추고 개발 생산성 증대
+- Hub Route Service에서 Hub Service의 허브 유효성 검증 API를 **FeignClient**로 호출
+
+### 2. Domain-Driven Design (DDD) & Value Objects
+- **도메인 핵심 개념을 Value Object로 캡슐화**: Distance(거리), Duration(소요시간), Location(위경도), HubCode(허브 코드)를 불변 객체로 설계
+- **Primitive Obsession 안티패턴 제거**: `Double distance` 대신 `Distance` 타입 사용으로 **안전성 확보**
+- **도메인 규칙의 응집**: 유효성 검증(거리 > 0, 위경도 범위 등)을 Value Object 생성자에 집중하여 **비즈니스 로직 분산 방지**
+- **Clean Architecture** 적용: Presentation → Application → Domain → Infrastructure 계층 분리
+- **의존성 규칙**: 외부 계층 → 내부 계층 방향만 허용, **Domain Layer는 외부 의존성 없음**
+
+### 3. Redis Caching Strategy (Look-aside Pattern)
+- 연산 비용이 높은 **'최단 경로 계산 결과'** 와 조회 빈도가 잦은 **'허브 데이터'** 를 Redis에 캐싱
+- **Spring Cache Abstraction**(`@Cacheable`, `@CacheEvict`, `@Caching`)을 적용하여 비즈니스 로직과 캐싱 관심사를 분리
+- **Look-aside 전략**을 사용하여 Cache Miss 발생 시에만 DB/알고리즘을 수행하고, 데이터 변경 시 즉시 Evict하여 정합성 유지
+- 경로 조회 성능을 평균 **10배 이상** 향상 (계산 없이 캐시에서 즉시 반환)
+
+### 4. Dijkstra Algorithm 기반 최적 경로 산출
+- Hub Route 서비스의 **핵심 코어 로직**으로, 허브 간 연결망(Graph) 데이터를 기반으로 최단 경로 탐색
+- **PriorityQueue(우선순위 큐)** 를 활용한 구현으로 탐색 성능을 최적화 (**Time Complexity: O(E log V)**)
+- 단순 직선거리가 아닌, **노드 간 가중치(거리/시간)** 를 반영한 정교한 이동 경로 데이터 생성
+- 그래프 구조: `Map<HubId, List<HubConnection>>` 형태의 인접 리스트로 구현
+- 경로 역추적(Backtracking)을 통해 출발지부터 도착지까지의 전체 경로 세그먼트 생성
+
+### 5. RabbitMQ 기반 비동기 메시징 & 이벤트 기반 아키텍처
+- **배송 서비스(Delivery Service)** 와 **Hub Route Service** 간의 **비동기 통신**으로 구현하여, 기존 HTTP 동기 호출의 Blocking 문제를 해결하고 서비스 간 결합도를 최소화
+- 비동기 환경에서도 응답이 필요한 로직 처리를 위해 **Request-Reply 패턴**을 적용했으며, CorrelationId를 통해 요청과 응답 메시지를 정확히 매핑하여 동시다발적 트래픽 상황에서도 데이터 정합성을 보장
+- **Direct Exchange + Routing Key** 방식으로 메시지를 정확한 큐로 라우팅
+- **Jackson2JsonMessageConverter**를 사용하여 객체를 JSON으로 직렬화/역직렬화
+- 특정 서비스의 장애가 전파되지 않도록 시스템을 격리하여 데이터 유실을 방지하고, 메시지 큐를 통한 부하 분산으로 시스템의 **확장성**과 **안정성**을 동시에 확보
+
+### 6. QueryDSL 기반 동적 쿼리 및 검색
+- 허브의 **주소, 이름, 상태** 등 다양한 필터링 조건이 조합되는 복합 검색 기능을 구현
+- **컴파일 시점**에 쿼리 문법 오류를 사전에 포착하여 런타임 안정성 확보
+- **BooleanBuilder**와 Where 절을 활용하여 가독성 높고 확장이 용이한 검색 리포지토리 구축
+- Pageable을 통한 **페이징 처리**로 대량 데이터 조회 시에도 성능 유지
  
+---
 
-##  아키텍처 설계
+## 기술 스택
+| Category | Technology |
+|----------|----------|
+| Language | Java |
+| Framework | Spring Boot, Spring Cloud |
+| ORM | Spring Data JPA, QueryDSL |
+| Database | PostgreSQL |
+| Cache | Redis |
+| Message Queue | RabbitMQ |
+| Service Discovery | Eureka |
+| Config Management | Spring Cloud Config |
+| API Communication | OpenFeign |
 
-### 네트워크 아키텍처
+---
 
+## 아키텍처
 ```
-[Client]
-   ↓
-[API Gateway :8080]
-   ↓
-[Service Discovery (Eureka) :8761]
-   ↓
-┌─────────────────────────────────────────┐
-│  Microservices                          │
-│  - Order Service         :9001          │
-│  - Hub Service           :9002          │
-│  - Hub Route Service     :9003          │
-│  - Company Service       :9004          │
-│  - Product Service       :9005          │
-│  - Delivery Service      :9006          │
-│  - User Service          :9007          │
-│  - AI Service            :9008          │
-│  - Auth Service          :9009          │
-└─────────────────────────────────────────┘
-   ↓
-┌─────────────────────────────────────────┐
-│  Infrastructure                         │
-│  - PostgreSQL            :5434          │
-│  - Redis                 :6379          │
-│  - RabbitMQ              :5672          │
-│  - RabbitMQ Management   :15672         │
-│  - Config Server         :8888          │
-└─────────────────────────────────────────┘
+├── presentation        # Controller Layer
+├── application         # Service Layer (비즈니스 로직)
+│   ├── command         # Command 객체 (입력)
+│   └── dto             # Result 객체 (출력)
+├── domain              # Domain Layer
+│   ├── entity          # Hub 엔티티
+│   ├── service         # Domain Service
+│   └── vo              # Value Objects (HubCode, HubStatus, Location 등)
+└── infrastructure      # Infrastructure Layer
+    ├── repository      # JPA Repository & QueryDSL
+    └── initializer     # 데이터 초기화
 ```
 
-### 서비스 포트 매핑
+---
 
-| 서비스 | 포트 | 설명 |
-|--------|------|------|
-| **Config Server** | 8888 | 중앙 설정 서버 |
-| **Eureka Server** | 8761 | 서비스 레지스트리 |
-| **API Gateway** | 8080 | API 게이트웨이 |
-| **Order Service** | 9001 | 주문 관리 |
-| **Hub Service** | 9002 | 허브 관리 |
-| **Hub Route Service** | 9003 | 경로 최적화 |
-| **Company Service** | 9004 | 업체 관리 |
-| **Product Service** | 9005 | 상품 관리 |
-| **Delivery Service** | 9006 | 배송 관리 |
-| **User Service** | 9007 | 사용자 관리 |
-| **AI Service** | 9008 | AI 분석 |
-| **Auth Service** | 9009 | 인증/인가 |
-| **PostgreSQL** | 5434 | 데이터베이스 |
-| **Redis** | 6379 | 캐시 |
-| **RabbitMQ** | 5672 | 메시지 브로커 |
-| **RabbitMQ UI** | 15672 | 관리 콘솔 |
+## 핵심 구현 내용
 
-## MSA 통신 패턴
-
-### 동기 통신 (OpenFeign)
-- Hub Service ← Hub Route Service (허브 검증)
-- Company Service ← Order Service (업체 정보 조회)
-- Product Service ← Order Service (상품 정보 조회)
-
-### 비동기 통신 (RabbitMQ)
-- Order Service → Delivery Service (배송 생성 요청)
-- Delivery Service → Hub Route Service (경로 조회 요청)
-- Hub Route Service → Delivery Service (경로 응답)
-- Delivery Service → Order Service (배송 상태 업데이트)
-
- 
-
-# 프로젝트 실행 가이드
-
-### 1. 저장소 클론
-
-```bash
-git clone https://github.com/your-repo/sparta_logistics.git
-cd sparta_logistics
+### 1. Dijkstra 최단 경로 알고리즘
+```java
+@Component
+public class HubRoutePathFinder {
+    public List<HubConnection> findShortestPath(
+        HubId start,
+        HubId target,
+        Map<HubId, List<HubConnection>> graph,
+        RouteMetric metric
+    ) {
+        // 1. 거리 초기화
+        Map<HubId, Double> dist = new HashMap<>();
+        Map<HubId, HubConnection> prevEdge = new HashMap<>();
+        
+        // 2. 우선순위 큐로 최소 비용 노드 선택
+        PriorityQueue<NodeDistance> pq = new PriorityQueue<>(...);
+        
+        // 3. 다익스트라 탐색
+        while (!pq.isEmpty()) {
+            // 현재 노드에서 인접 노드로 이동 시 더 짧은 경로 발견 시 갱신
+            // ...
+        }
+        
+        // 4. 경로 역추적
+        // ...
+        return path;
+    }
+}
 ```
 
-### 2. 환경 변수 설정
+### 2. 경로 캐싱 전략
+```java
+@Cacheable(
+    cacheNames = "hubRoute",
+    key = "#departureHubId.id + '-' + #arrivalHubId.id"
+)
+public HubRouteResult getOrComputeRoute(
+    HubId departureHubId,
+    HubId arrivalHubId
+) {
+    // DB에서 먼저 조회, 없으면 계산
+    return hubRouteRepository
+        .findDetailedRouteBetween(departureHubId, arrivalHubId)
+        .orElseGet(() -> computeAndSaveRoute(departureHubId, arrivalHubId));
+}
 
-프로젝트 루트에 `.env` 파일 생성:
-
-```env
-EUREKA_DEFAULT_ZONE=http://eureka-server:8761/eureka/
-CONFIG_SERVER_PORT=8888
-EUREKA_SERVER_PORT=8761
-EUREKA_HOST=eureka-server
-API_GATEWAY_PORT=8080
-ORDER_SERVICE_PORT=9001
-HUB_SERVICE_PORT=9002
-HUB_ROUTE_SERVICE_PORT=9003
-COMPANY_SERVICE_PORT=9004
-PRODUCT_SERVICE_PORT=9005
-DELIVERY_SERVICE_PORT=9006
-USER_SERVICE_PORT=9007
-AI_SERVICE_PORT=9008
-AUTH_SERVICE_PORT=9009
-RABBIT_HOST=
-RABBIT_USERNAME=
-RABBIT_PASSWORD=
-JWT_SECRET=
-JWT_EXPIRATION=
-GEMINI_KEY= 
+@CacheEvict(
+    cacheNames = "hubRoute",
+    key = "#departureHubId.id + '-' + #arrivalHubId.id"
+)
+public HubRouteResult computeAndSaveRoute(...) {
+    // 1. 허브 간 연결 정보 로드
+    // 2. 그래프 구성
+    // 3. 다익스트라 실행
+    // 4. 총 거리/시간 계산
+    // 5. 경로 세그먼트 생성 및 저장
+}
 ```
 
-### 3. 인프라 서비스 실행
+### 3. Value Object로 도메인 개념 표현
+```java
+@Embeddable
+public class Distance {
+    private Double distance;
+    
+    public Distance add(Distance other) {
+        return new Distance(this.distance + other.distance);
+    }
+}
 
-
-#### Option 1: Docker Compose 사용 (권장)
-
-```bash
-# PostgreSQL 시작
-docker-compose up -d
+@Embeddable
+public class Duration {
+    private Integer duration;
+    
+    public Duration add(Duration other) {
+        return new Duration(this.duration + other.duration);
+    }
+}
 ```
 
-**접속 정보:**
-- PostgreSQL: `localhost:5434`
-- Redis: `localhost:6379`
-- RabbitMQ: `localhost:5672` (관리자: http://localhost:15672, guest/guest)
-
-#### Option 2: 로컬 설치
-
-각 서비스를 직접 설치하여 실행
-
-### 4. 서비스 실행 순서
-
-MSA는 **의존성 순서**에 따라 실행해야 합니다.
-
-#### Step 1: Config Server 실행 (최우선)
-
-```bash
-# Windows
-gradlew.bat :config-server:bootRun
-
-# Linux/Mac
-./gradlew :config-server:bootRun
+### 4. FeignClient를 통한 서비스 간 통신
+```java
+@FeignClient(name = "hub-service")
+public interface HubClient {
+    @GetMapping("/hubs/{hubId}/exists")
+    boolean existsHub(@PathVariable("hubId") UUID hubId);
+    
+    @GetMapping("/hubs/{hubId}")
+    HubDetailResponse getHub(@PathVariable("hubId") UUID hubId);
+}
 ```
 
-**확인**: http://localhost:8888/actuator/health
-
-#### Step 2: Eureka Server 실행
-
-```bash
-./gradlew :eureka-server:bootRun
-```
-
-**확인**: http://localhost:8761 (Eureka Dashboard)
-
-#### Step 3: 비즈니스 서비스 실행
-
-30초 대기 후 다음 서비스들을 순서대로 실행:
-
-```bash
-# 인증 서비스
-./gradlew :auth-service:bootRun
-
-# 사용자 서비스
-./gradlew :user-service:bootRun
-
-# 허브 서비스
-./gradlew :hub-service:bootRun
-
-# 허브 경로 서비스
-./gradlew :hub-route-service:bootRun
-
-# 업체 서비스
-./gradlew :company-service:bootRun
-
-# 상품 서비스
-./gradlew :product-service:bootRun
-
-# 주문 서비스
-./gradlew :order-service:bootRun
-
-# 배송 서비스
-./gradlew :delivery-service:bootRun
-
-# AI 서비스
-./gradlew :ai-service:bootRun
-
-# API Gateway (마지막)
-./gradlew :api-gateway:bootRun
-```
-
-#### Step 4: 서비스 등록 확인
-
-Eureka Dashboard(http://localhost:8761)에서 모든 서비스가 등록되었는지 확인
-
-### 5. 빠른 빌드 (테스트 제외)
-
-```bash
-# 전체 프로젝트 빌드
-./gradlew clean build -x test
-
-# 특정 서비스만 빌드
-./gradlew :hub-service:build -x test
-./gradlew :hub-route-service:build -x test
-```
-
-### 6. JAR 파일로 실행
-
-```bash
-# 빌드 후
-java -jar config-server/build/libs/config-server-0.0.1-SNAPSHOT.jar
-java -jar eureka-server/build/libs/eureka-server-0.0.1-SNAPSHOT.jar
-java -jar hub-service/build/libs/hub-service-0.0.1-SNAPSHOT.jar
-# ...
-```
-
-### 7. 초기 데이터 생성
-
-`local` 프로파일로 실행 시 자동으로 초기 데이터가 생성됩니다:
-
-- **Hub Service**: 17개 허브 자동 생성
-- **Hub Route Service**: 272개 허브 간 연결 자동 생성 (17 × 16)
-
-
- 
-
-# 설계 산출물
-
-
-
-
-## ERD 
-
-<img width="2294" height="1496" alt="erd" src="https://github.com/user-attachments/assets/5adb99a0-26b4-438d-bd34-476461ef8ea7" />
-
-
-## 시스템 아키텍처 다이어그램
-
-<img width="979" height="633" alt="스크린샷 2025-11-13 오후 3 32 16" src="https://github.com/user-attachments/assets/2e091f87-59a9-4a28-b2ed-4e17dece9117" />
-
-
-
-
-## 인프라 설계
-
-<img width="928" height="1232" alt="image" src="https://github.com/user-attachments/assets/bad1789c-1a9b-48d1-ac11-f0832f8933fe" />
-
-
-## API 명세서
-
-[설계 도메인 개요 및 API 명세서](api-docs.md)
-
-## 네트워크 아키텍처
-
-```
-[Client]
-   ↓
-[API Gateway :8080]
-   ↓
-[Service Discovery (Eureka) :8761]
-   ↓
-┌─────────────────────────────────────────┐
-│  Microservices                          │
-│  - Hub Service                          │
-│  - Hub Route Service                    │
-│  - Delivery Service                     │
-│  - Order Service                        │
-│  - Company Service                      │
-│  - Product Service                      │
-│  - User Service                         │
-│  - Auth Service                         │
-│  - AI Service                           │
-└─────────────────────────────────────────┘
-   ↓
-┌─────────────────────────────────────────┐
-│  Infrastructure                         │
-│  - PostgreSQL :5434                     │
-│  - Redis :6379                          │
-│  - RabbitMQ :5672                       │
-│  - Config Server :8888                  │
-└─────────────────────────────────────────┘
-```
-
-
- 
-
-# Conventions
-
-[팀 개발 규칙 및 가이드](team-convention.md)
-
-
- 
-
-# 트러블슈팅
-
-## 1. 최종 일관성(Eventual Consistency) 도입
-
-**어려웠던 점**
-- POST /orders API가 배송, 허브 경로 계산까지의 모든 프로세스를 완료하고 최종 결과를 반환해야 한다고 생각하고 높은 결합도로 서비스를 설계했었습니다.
-
-**해결 방안**
-- 최종 일관성(Eventual Consistency) 개념을 도입했습니다
-- POST /orders는 PENDING 상태의 응답만 즉시 반환하고, 백그라운드에서 RabbitMQ로 실제 처리를 위임
-- 클라이언트(App/Web)는 이 orderId로 GET /orders/{id}를 폴링하여 최종 상태(PREPARING 등)를 확인하도록 API 명세를 재정의했습니다.
-
- 
-
-## 2. 발행/응답 시, 비동기 작업의 독립성으로 인한 문제 발생 → 발행/응답의 신뢰성 보장
-
-**어려웠던 점 (초기 문제 발생)**
-
-**문제 개요 (데이터 불일치)**
-- 주문 도메인으로부터 배달 생성 요청을 수신하는 과정에서, 배달 생성 트랜잭션은 오류로 실패했으나, 주문 도메인으로의 응답 이벤트("배송 생성됨")는 독립적으로 발행되어 데이터 불일치가 발생했습니다.
-
-**근본 원인**
-- 비즈니스 로직(DB 상태 변경)과 외부 통신(이벤트 발행)이 **단일 트랜잭션으로 묶여있지 않아** 한쪽만 성공하고 다른 쪽은 실패하는 원자성(Atomicity) 문제가 발생했습니다.
-
-**해결 방안 (단계별 신뢰성 확보)**
-
-### 1차 해결: 트랜잭션 순서 보장 (After Commit)
-- **배경**: 큐로 메시지를 보내는 비동기 작업이 DB 트랜잭션과 독립적으로 동작하는 것을 발견했습니다.
-- **조치**: 해당 비동기 이벤트 발행 작업을 **`After Commit`** 로직으로 구현하여, DB 트랜잭션이 성공적으로 완료된 후(커밋 후)에만 이벤트가 작동하도록 순서를 보장했습니다.
-- **한계**: After Commit은 **순서만 보장**할 뿐, 이벤트 발행 자체의 **성공(신뢰성)을 보장하지는 않아** 여전히 실패 시 재처리 로직이 필요했습니다.
-
-### 2차 해결: 요청 이벤트 발행 신뢰성 확보 (OUTBOX 패턴)
-- **배경**: 1차 해결 후, 허브 도메인으로 경로를 요청하고 응답을 받는 로직에서 동일한 불일치 상황이 재발했습니다.
-- **조치**: **OUTBOX 패턴**을 적용했습니다.
-  - 배달 상태 변경(DB)과 외부 시스템(허브)으로 보낼 요청 이벤트 기록을 **단일 트랜잭션**으로 묶어 처리했습니다.
-  - 별도의 프로세스가 Outbox 테이블을 모니터링하여 이벤트 브로커로 전송, **이벤트 유실을 방지**했습니다.
-
-### 3차 해결: 응답 메시지 소비 신뢰성 확보 (DLQ + 멱등성)
-- **배경**: 요청 발행 신뢰성을 확보했으므로, 이제 외부 시스템(허브)으로부터 돌아오는 **응답 메시지 소비**의 신뢰성을 확보하고자 했습니다.
-- **조치**:
-  - **멱등성(Idempotency)**: 메시지에 포함된 **고유 ID**를 사용하여 컨슈머가 메시지를 중복 처리하지 않도록 구현했습니다.
-  - **DLQ (Dead Letter Queue)**: 컨슈머가 메시지 처리에 실패할 경우, 메시지를 DLQ로 보내 **유실을 방지**하고 재시도 또는 수동 처리를 가능하게 했습니다.
-- **잔여 문제**: 컨슈머의 응답 처리 로직(DB 상태 변경)은 성공했으나, **이후 후속 이벤트 발행(주문 도메인으로의 응답)이 실패**하는 상황은 여전히 문제로 남았습니다.
-
-### 최종 해결: 후속 이벤트 발행 신뢰성 확보 (컨슈머 Outbox 도입)
-- **배경**: 응답 처리 후의 후속 이벤트 발행 실패 문제를 최종적으로 해결해야 했습니다.
-- **조치**: **컨슈머 Outbox**를 도입했습니다.
-  - 허브 응답 메시지를 받아 **배달 상태를 변경**하는 트랜잭션 내부에서, 주문 도메인으로 보낼 **응답 이벤트를 Outbox 테이블에 함께 기록**하도록 로직을 변경했습니다.
-  - 이로써 **배달 상태 변경**과 **응답 이벤트 기록**이 **단일 트랜잭션**으로 원자성을 보장하게 되어, 후속 이벤트 발행의 신뢰성을 완벽하게 확보했습니다.
-
- 
-
-## 3. Circuit Breaker 패턴 도입
-
-**어려웠던 점**
-- Product 생성 과정에서 외부 서비스 문제 발생 시 장애 전파 문제 발생
-
-**해결 방안**
-- Circuit Breaker 패턴과 Retry 도입
-- 외부 서비스 장애 시 격리 조치
-- 구체적인 예외 처리를 통해 404, 400 등의 예외는 무시하며 예외별 다른 응답으로 UX 개선
-
- 
-
-## 4. 경로 탐색 알고리즘 선택
-
-**어려웠던 점**
-- 17개 허브 간 최적 경로를 계산하기 위해, 전체 경로를 미리 계산할지 혹은 요청 시점에 계산할지를 선택하는 과정이 어려웠음.
-- 거리/시간 등 가중치가 요청마다 달라질 수 있어, 전체 재계산 부담을 최소화할 수 있는 성능 전략이 필요했음.
-
-**해결방안**
-- **Dijkstra 알고리즘**을 적용하여 요청 시 필요한 경로만 즉시 계산하도록 설계.
-- **Redis + DB 캐싱 구조**를 도입해 경로가 변하지 않는 반복 요청의 응답 속도를 크게 향상.
-- 가중치를 요청 단위로 동적으로 반영할 수 있어 유연성과 성능을 동시에 확보함.
-
- 
-
-# 회고
-
-## 1. 개발 및 협업 측면에서 잘한 부분
-
-### 1.1 체계적인 아키텍처 설계 및 구현
-- MSA 구조와 DDD 기반 설계를 처음 적용하면서도 각 구조의 특징과 장점을 이해하고자 꾸준히 고민했습니다. 이를 설계와 구현에 최대한 반영하기 위해 노력한 결과, MSA 구조에 대한 감각을 기를 수 있었고 프로젝트 설계 능력이 한 단계 성장할 수 있었습니다.
-
-### 1.2 실무 패턴의 성공적인 적용
-- Circuit Breaker 패턴을 도입하여 외부 서비스 장애 시 시스템 안정성을 확보했습니다. 특히 모든 예외를 동일하게 처리하던 방식에서 예외별 세분화 설정으로 개선하는 과정을 통해 시스템 안정성의 핵심을 이해할 수 있었습니다.
-
-### 1.3 분산 시스템 데이터 일관성 확보
-- After Commit의 한계를 경험한 후 **Outbox 패턴**을 도입하여 DB 트랜잭션과 이벤트 발행을 원자적으로 처리했습니다. 추가로 **Retry와 DLQ**를 구성하여 메시지 유실을 방지하고, 발행(보내기)과 소비(받기) 양쪽 모두에 신뢰성을 확보했습니다. 이를 통해 분산 시스템에서 데이터 일관성을 지키는 것이 얼마나 중요한지 깊이 이해할 수 있었습니다.
-
-### 1.4 효과적인 협업 문화
-- 첫 MSA 프로젝트임에도 팀원들 간의 적극적인 코드 리뷰와 피드백을 통해 복잡한 구조를 함께 이해하고 개선해 나갈 수 있었습니다. 특히 서비스가 분리된 환경에서 협업의 중요성을 몸소 체감했으며, 혼자였다면 구조와 흐름을 이해하는 데 훨씬 더 오래 걸렸을 것입니다.
-
- 
-
-## 2. 현재 시스템의 한계와 이를 발전시키기 위한 계획
-
-### 2.1 서비스 간 의존성 관리
-**현재 한계**
-- 동기 통신(OpenFeign)이 과도하게 사용되어 일부 서비스 장애 시 연쇄 장애 가능성 존재
-
-**개선 계획**
-- 비동기 메시징(RabbitMQ) 비중 확대
-- 서비스 메시 도입 (Istio 등) 검토
-- Saga 패턴 적용으로 분산 트랜잭션 관리 고도화
-
-### 2.2 모니터링 및 관측성(Observability)
-**현재 한계**
-- 분산 추적(Distributed Tracing) 부재
-- 서비스 간 호출 관계 시각화 미흡
-- 실시간 알림 체계 부족
-
-**개선 계획**
-- Spring Cloud Sleuth + Zipkin 도입으로 분산 추적 구현
-- Prometheus + Grafana 기반 메트릭 대시보드 구축
-- ELK Stack을 통한 중앙 집중식 로깅 시스템 구축
-
-### 2.3 테스트 자동화
-**현재 한계**
-- 통합 테스트 커버리지 부족
-- E2E 테스트 자동화 미흡
-
-**개선 계획**
-- TestContainers 활용한 통합 테스트 강화
-- 계약 테스트(Contract Testing) 도입으로 서비스 간 인터페이스 검증
-- CI/CD 파이프라인에 자동화된 테스트 단계 추가
-
-### 2.4 성능 최적화
-**현재 한계**
-- 부하 테스트 미실시
-- 병목 구간 식별 부족
-
-**개선 계획**
-- JMeter/Gatling을 통한 부하 테스트 수행
-- 응답 시간 SLA 정의 및 모니터링
-- 데이터베이스 쿼리 최적화 및 인덱싱 전략 수립
-
-
-## 3. 협업 시 아쉽거나 부족했던 부분
-
-### 3.1 초기 설계 단계의 커뮤니케이션
-- MSA와 DDD가 모두 처음이다 보니 초기 서비스 경계(Bounded Context)를 정의하는 과정에서 시행착오가 있었습니다. 프로젝트 초반에 더 많은 시간을 들여 도메인 경계와 서비스 책임을 명확히 정의했다면 중간에 구조를 수정하는 시간을 줄일 수 있었을 것입니다.
-
-### 3.2 API 명세 문서화
-- 서비스 간 통신이 많은 만큼 API 명세가 중요했지만, 초반에는 문서화가 미흡하여 다른 팀원의 API를 사용할 때 코드를 직접 확인해야 하는 경우가 있었습니다. Swagger를 더 적극적으로 활용하고 계약을 먼저 정의하는 API First 접근 방식을 취했다면 더 효율적이었을 것입니다.
-
-### 3.3 공통 모듈 관리
-- 공통 모듈(common)의 변경 사항이 모든 서비스에 영향을 주는 구조였지만, 변경 시 충분한 논의와 공지 없이 진행되어 일부 서비스에서 빌드 오류가 발생한 적이 있었습니다. 공통 모듈 변경 시 사전 협의 프로세스를 확립했다면 좋았을 것입니다.
-
-### 3.4 기술 스터디 및 지식 공유
-- MSA 관련 개념(Saga, CQRS, Event Sourcing 등)에 대해 팀원들과 함께 학습하는 시간을 더 가졌다면 설계 단계에서 더 나은 의사결정을 할 수 있었을 것입니다. 정기적인 기술 공유 세션이나 스터디를 진행했다면 팀 전체의 역량이 더 빠르게 향상되었을 것으로 생각됩니다.
-
-### 3.5 코드 리뷰 프로세스
-- 코드 리뷰가 이루어지긴 했지만, 일정에 쫓겨 형식적으로 진행된 경우도 있었습니다. 체크리스트를 만들고 리뷰 기준을 명확히 했다면 코드 품질을 더 높일 수 있었을 것입니다.
-
-
-#  팀원 소개
-
-| 팀원  | 깃허브                                          | 담당 서비스                              |
-|-----|----------------------------------------------|--------------------------------------|
-| 권용은 | [@rlooko](https://github.com/rlooko)   | User, AI Service 개발 및 테스트코드 작성     |
-| 변영재 | [@bbangjae](https://github.com/bbangjae)     | Hub, Hub Route Service 개발 및 테스트코드 작성 |
-| 이세준 | [@hello22433](https://github.com/hello22433) | Delivery Service 개발 및 테스트코드 작성     |
-| 전우선 | [@wooxexn](https://github.com/wooxexn)       | Product, Company Service 개발 및 테스트코드 작성 |
-| 진경천 | [@qqqqq7666](https://github.com/qqqqq7666)   | Order Service 개발 및 테스트코드 작성        |
+---
+
+## 주요 기술 의사결정
+
+### 최단 경로 탐색: Dijkstra 알고리즘 채택
+- **대안**: A* 알고리즘, Floyd-Warshall
+- **선택 이유**: 
+  - 단일 출발지에서 단일 도착지까지의 최단 경로 탐색이 주 목적
+  - A*는 휴리스틱 함수가 필요하나, 허브 간 직선거리가 실제 경로와 차이가 큼
+  - Floyd-Warshall은 모든 쌍 최단 경로를 계산하므로 오버스펙
+
+### 메시지 브로커: RabbitMQ 채택
+- **대안**: Kafka, AWS SQS
+- **선택 이유**:
+  - Request-Reply 패턴 구현이 용이 (CorrelationId 기본 지원)
+  - 학습 곡선이 낮고, Docker로 로컬 환경 구축 간편
+  - 경로 조회는 실시간성이 중요하므로 메시지 순서 보장 필요 없음
+
+---
+
+## 어려웠던 점과 해결
+
+### 1. Redis 캐시 정합성 유지의 어려움
+
+**문제 상황**
+- 허브 연결(HubConnection)이 변경되면, **관련된 모든 경로(HubRoute) 캐시**를 무효화해야 함
+- 예: `서울 → 경기북부` 연결이 변경되면, `서울 → 부산` 경로에도 영향을 미침 (경유지로 사용될 수 있기 때문)
+- 초기에는 변경된 연결만 무효화했더니, **이전 캐시 데이터가 반환**되어 잘못된 경로 정보 제공
+- 모든 경로 캐시를 무조건 삭제하면 성능 이점이 사라짐
+
+**해결 과정**
+1. **캐시 무효화 전략 수립**
+   ```java
+   // 허브 생성/수정/삭제 → 모든 허브 관련 캐시 삭제
+   @Caching(evict = {
+       @CacheEvict(cacheNames = "hub", key = "#hubId"),
+       @CacheEvict(cacheNames = "hubList", allEntries = true)
+   })
+   
+   // 허브 연결 변경 → 관련 경로 캐시 삭제
+   @CacheEvict(cacheNames = "hubRoute", 
+               key = "#departureHubId.id + '-' + #arrivalHubId.id")
+   ```
+
+2. **Trade-off 결정**
+   - **현재 전략**: 허브 연결 변경 시 **모든 경로 캐시를 삭제** (`allEntries = true`)
+   - **장점**: 구현이 단순하고 데이터 정합성 보장
+   - **단점**: 불필요한 캐시까지 삭제되어 일시적으로 성능 저하
+   - **개선 여지**: 영향받는 경로만 선택적으로 삭제 (그래프 분석 필요, 복잡도 증가)
+
+3. **Look-aside 패턴 선택 이유**
+   - **Write-through**: 데이터 변경 시 캐시도 함께 업데이트 → 경로 계산이 복잡하여 부적합
+   - **Look-aside**: 조회 시 캐시 확인 → 없으면 계산 후 저장 → 읽기 중심 워크로드에 적합
+
+---
+
+### 2. Value Object vs Entity 구분의 모호함
+
+**문제 상황**
+- DDD를 학습하며 Value Object의 개념은 알았지만, **어디까지 VO로 만들어야 할지 기준이 모호**했음
+- 처음에는 `Double distance`, `Integer duration` 같은 원시 타입을 그대로 사용
+- 코드 전반에서 `hub.getLatitude()`, `connection.getDistanceKm()` 같은 필드 접근이 산재
+- 비즈니스 규칙(예: 거리는 0보다 커야 함)이 **Service 계층 곳곳에 중복**되어 존재
+
+**해결 과정**
+1. **Value Object 도입 기준 정립**
+   - ✅ **도메인 의미가 명확한 개념**: Distance(거리), Duration(시간), Location(위치)
+   - ✅ **비즈니스 규칙(유효성 검증)이 있는 것**: HubCode(Enum으로 허브 코드 제한)
+   - ✅ **식별자가 없고, 값 그 자체로 의미가 있는 것**: `new Distance(100)`과 `new Distance(100)`은 동일
+   - ❌ **식별자가 있고, 생명주기를 가진 것**: Hub, HubConnection은 Entity
+
+2. **Value Object 도입 효과**
+   - **타입 안전성**: `setDistance(duration)` 같은 실수 방지 (컴파일 타임에 에러)
+   - **도메인 규칙 응집**: 거리 관련 검증/계산 로직이 `Distance` 클래스 내부에 집중
+   - **코드 가독성**: `distance.add(otherDistance)` 같은 직관적인 표현 가능
+   - **불변성**: Setter 없이 생성자로만 생성 → 사이드 이펙트 방지
+
+---
+
+## 프로젝트를 진행하며 배운 내용
+1. **도메인 주도 설계(DDD)의 가치:** Entity, VO, Domain Service를 명확히 분리하여 코드의 가독성과 유지보수성을 확보함 
+2. **알고리즘의 실용성:** 학습했던 자료구조와 알고리즘 이론이 실제 비즈니스 로직 최적화에 어떻게 적용되는지 경험
+3. **분산 환경의 데이터 정합성 난이도:** MSA 환경에서 단순히 캐시를 도입하는 것을 넘어, '캐시 무효화 전략' 등 데이터 정합성을 유지하는 기술적 복잡성을 체감
+4. **Trade-off에 기반한 합리적 의사결정:** 캐싱 적용 시 '성능 vs 정합성' 사이의 균형을 고민하며, 기술적 완벽함보다는 비즈니스 요구사항에 부합하는 최적의 선택이 중요함을 학습
+
+--- 
+
+## 추가 개선 부분
+- [ ] 시간 기준 최적화 옵션 추가 (현재 거리 기준만 지원)
+- [ ] 경로 계산 실패 시 재시도 로직 + Circuit Breaker 패턴 적용
+- [ ] Grafana + Prometheus로 경로 조회 성능 모니터링 대시보드 구축
+- [ ] 이벤트 기반 아키텍처로 전환 (RabbitMQ → Event Sourcing)
+- [ ] 실시간 교통 정보 연동 (외부 API)으로 동적 경로 계산
