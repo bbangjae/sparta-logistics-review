@@ -6,20 +6,20 @@
 - **담당 역할**: Hub Service, Hub Route Service 설계 및 구현
 - **프로젝트 성격**: MSA 기반 물류 관리 시스템 
 
----
+ 
 
 ## 소개
 **MSA 기반 물류 관리 시스템** 프로젝트의 전반적인 내용과 제가 담당했던 핵심 역할을 정리하고, 개발 과정에서의 기술적 회고를 작성하였습니다.
 
 기존 Repository 주소: https://github.com/sparta-logitics/sparta_logistics
 
----
+ 
 
 ## 담당 영역
 - **Hub Service**: 물류 허브 관리 서비스
 - **Hub Route Service**: 허브 간 경로 계산 및 관리 서비스
 
----
+ 
 
 ## 핵심 구현 기술
 
@@ -62,7 +62,7 @@
 - **BooleanBuilder**와 Where 절을 활용하여 가독성 높고 확장이 용이한 검색 리포지토리 구축
 - Pageable을 통한 **페이징 처리**로 대량 데이터 조회 시에도 성능 유지
  
----
+ 
 
 ## 기술 스택
 | Category | Technology |
@@ -77,7 +77,7 @@
 | Config Management | Spring Cloud Config |
 | API Communication | OpenFeign |
 
----
+
 
 ## 아키텍처
 ```
@@ -94,7 +94,7 @@
     └── initializer     # 데이터 초기화
 ```
 
----
+
 
 ## 핵심 구현 내용
 
@@ -190,7 +190,7 @@ public interface HubClient {
 }
 ```
 
----
+
 
 ## 주요 기술 의사결정
 
@@ -208,7 +208,7 @@ public interface HubClient {
   - 학습 곡선이 낮고, Docker로 로컬 환경 구축 간편
   - 경로 조회는 실시간성이 중요하므로 메시지 순서 보장 필요 없음
 
----
+
 
 ## 어려웠던 점과 해결
 
@@ -244,7 +244,7 @@ public interface HubClient {
    - **Write-through**: 데이터 변경 시 캐시도 함께 업데이트 → 경로 계산이 복잡하여 부적합
    - **Look-aside**: 조회 시 캐시 확인 → 없으면 계산 후 저장 → 읽기 중심 워크로드에 적합
 
----
+
 
 ### 2. Value Object vs Entity 구분의 모호함
 
@@ -267,7 +267,7 @@ public interface HubClient {
    - **코드 가독성**: `distance.add(otherDistance)` 같은 직관적인 표현 가능
    - **불변성**: Setter 없이 생성자로만 생성 → 사이드 이펙트 방지
 
----
+
 
 ## 프로젝트를 진행하며 배운 내용
 1. **도메인 주도 설계(DDD)의 가치:** Entity, VO, Domain Service를 명확히 분리하여 코드의 가독성과 유지보수성을 확보함 
@@ -275,7 +275,7 @@ public interface HubClient {
 3. **분산 환경의 데이터 정합성 난이도:** MSA 환경에서 단순히 캐시를 도입하는 것을 넘어, '캐시 무효화 전략' 등 데이터 정합성을 유지하는 기술적 복잡성을 체감
 4. **Trade-off에 기반한 합리적 의사결정:** 캐싱 적용 시 '성능 vs 정합성' 사이의 균형을 고민하며, 기술적 완벽함보다는 비즈니스 요구사항에 부합하는 최적의 선택이 중요함을 학습
 
---- 
+ 
 
 ## 추가 개선 부분
 - [ ] 시간 기준 최적화 옵션 추가 (현재 거리 기준만 지원)
